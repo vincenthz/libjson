@@ -1,0 +1,13 @@
+[
+	{
+		"object1-key1": 123,
+		"object1-key2": "abc"
+	},
+	{
+		"test": "x",
+		"test2": "x2"
+	},
+	{
+		"key": "y"
+	}
+]

@@ -1,0 +1,72 @@
+= libjson README =
+
+libjson is a simple library without any dependancies to parse and pretty print
+the json format (RFC4627). The JSON format is a concise and structured data
+format.
+
+libjson parser is an interruptible handcoded state parse. the parser takes
+character or string as input. Since it's interruptible, it's up to the
+user to feed the stream to the parser, which permits complete flexibility
+as to whether the data is coming from a pipe, a network socket, a file on disk,
+a serial line, or crafted by the user.
+
+The parser doesn't create an object tree for you, but each time it comes up
+with an element in this data, it just callback to the user with the type found and
+for some type, the data associated with it. it can be compared to the SAX way of XML,
+hence it's called SAJ (Simple API for JSon).
+
+The parser doesn't convert number to any native C format, but instead callback
+with a string that is a valid JSon number. JSon number can be of any size,
+so that's up to user to decide whetever or not, the number can map to native C type
+int32_t, int64_t, or a complex integer type. As well the user has a choice to
+refuse the integer at the callback stage if the length is not appropriate.
+
+The parser optionally allows YAML and/or C comments to be ignored if the config
+structure is set accordingly, otherwise a JSON_ERROR_COMMENT_NOT_ALLOWED is returned.
+
+the parser API is really simple, totaling only 5 API calls:
+
+* json_parser_init
+* json_parser_char
+* json_parser_string
+* json_parser_is_done
+* json_parser_free
+
+json_parser_init initializes a new parser context from a parser config and
+takes a callback + userdata. This callback function is used everything the
+parser need to communicate a type and value to the client side of the library.
+
+json_parser_char take one character and inject it in the parser. on parsing
+success it will return a 0 value, but on parsing error it returns a parsing
+error that represents the type of the error encounters. see JSON_ERROR_*
+for the full set of return values.
+
+json_parser_string is similar to json_parser_char except that it takes a string
+and a length.  it also returns the number of character processed, which is
+useful when an parser error happened in the stream to pinpoint where.
+
+json_parser_is_done permits to test whetever or not the parser is in a
+terminated state. it involves not beeing into any structure.
+
+json_parser_free is the opposite of init, it just free the allocated structure.
+
+the printer API is simple too:
+
+* json_printer_init
+* json_printer_free
+* json_printer_pretty
+* json_printer_raw
+
+json_printer_init initialise a printing context and takes a callback + userdata
+that will be called for every character that the printer wants to output. the
+caller can have the printer callback redirect to anything it wants.
+
+json_printer_free is the opposite of init
+
+json_printer_raw takes a json type and an optional data and length value
+depending on the type. it's up to the caller to verify that the order of type
+are JSON-compliant, otherwise the generated document won't be able to be parsed
+again.
+
+json_printer_pretty works like json_printer_raw but is targetted for human
+reading by appending newlines and spaces

@@ -1,0 +1,10 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libjson
+Description: Library supporting JSON format
+Version: @LIBJSON_VER_MAJOR@.@LIBJSON_VER_MINOR@
+Libs: -ljson
+Cflags:

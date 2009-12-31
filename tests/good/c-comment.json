@@ -1,0 +1,13 @@
+/* this is a comment before the first object */
+{
+	"key": /* this describe a key */ {
+		/* that is empty */
+	},
+	/* well this other key in the same structure */
+	"key2": "abc" /* abc is valuable value */,
+	"key3" /*before the colon */: 0,
+	"key4": /* key3 is an integer */ 123
+	/* well after everything */
+	/* and an other one */
+}
+/* this comment is after the object */

@@ -1,0 +1,10 @@
+# comments before first object
+# can be multilines obviously
+{
+	"key": { # this is a comment in empty object
+	},
+	# between values
+	"key2": "abc" # or after
+	# after everything
+}
+# after the document is finished

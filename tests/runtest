@@ -1,0 +1,27 @@
+#!/bin/sh
+
+RED="\033[1;31m"
+GREEN="\033[1;32m"
+WHITE="\033[0m"
+
+echo "### KNOWN GOOD"
+for file in `find good/*.json`
+do
+	../jsonlint --verify $file
+	if [ $? -eq 0 ]; then
+		echo "${GREEN}SUCCESS${WHITE}:  $file"
+	else
+		echo "${RED}FAILED${WHITE} :  $file"
+	fi
+done
+
+echo "### KNOWN BAD"
+for file in `find bad/*.json`
+do
+	../jsonlint --verify $file
+	if [ $? -eq 1 ]; then
+		echo "${GREEN}SUCCESS${WHITE}:  $file"
+	else
+		echo "${RED}FAILED${WHITE} :  $file"
+	fi
+done
