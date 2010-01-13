@@ -740,6 +740,8 @@ static int print_string(json_printer *printer, const char *data, uint32_t length
 		if (c < 36) {
 			char *esc = character_escape[c];
 			printer->callback(printer->userdata, esc, strlen(esc));
+		} else if (c == '\\') {
+			printer->callback(printer->userdata, "\\\\", 2);
 		} else
 			printer->callback(printer->userdata, data + i, 1);
 	}
