@@ -252,19 +252,18 @@ static uint8_t buffer_policy_table[NR_STATES][NR_CLASSES] = {
 #define MODE_ARRAY 0
 #define MODE_OBJECT 1
 
-static inline void *parser_realloc(json_parser *parser, void *ptr, size_t size)
+static inline void *memory_realloc(void *(*realloc_fct)(void *, size_t), void *ptr, size_t size)
 {
-	return (parser->config.user_realloc)
-		? parser->config.user_realloc(ptr, size)
-		: realloc(ptr, size);
+	return (realloc_fct) ? realloc_fct(ptr, size) : realloc(ptr, size);
 }
 
-static inline void *parser_calloc(json_parser *parser, size_t nmemb, size_t size)
+static inline void *memory_calloc(void *(*calloc_fct)(size_t, size_t), size_t nmemb, size_t size)
 {
-	return (parser->config.user_calloc)
-		? parser->config.user_calloc(nmemb, size)
-		: calloc(nmemb, size);
+	return (calloc_fct) ? calloc_fct(nmemb, size) : calloc(nmemb, size);
 }
+
+#define parser_calloc(parser, n, s) memory_calloc(parser->config.user_calloc, n, s)
+#define parser_realloc(parser, n, s) memory_realloc(parser->config.user_realloc, n, s)
 
 static int state_grow(json_parser *parser)
 {
