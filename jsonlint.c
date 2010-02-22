@@ -443,13 +443,14 @@ int usage(const char *argv0)
 	printf("\t--max-nesting : limit the number of nesting in structure (default to no limit)\n");
 	printf("\t--max-data : limit the number of characters of data (string/int/float) (default to no limit)\n");
 	printf("\t--indent-string : set the string to use for indenting one level (default to 1 tab)\n");
+	printf("\t--tree : build a tree (DOM)\n");
 	printf("\t-o : output to a specific file instead of stdout\n");
 	exit(0);
 }
 
 int main(int argc, char **argv)
 {
-	int format = 0, verify = 0;
+	int format = 0, verify = 0, use_tree = 0;
 	int ret = 0, i;
 	json_config config;
 	char *output = "-";
@@ -472,6 +473,7 @@ int main(int argc, char **argv)
 			{ "max-nesting", 1, 0, 0 },
 			{ "max-data", 1, 0, 0 },
 			{ "indent-string", 1, 0, 0 },
+			{ "tree", 0, 0, 0 },
 			{ 0 },
 		};
 		int c = getopt_long(argc, argv, "o:", long_options, &option_index);
@@ -498,6 +500,8 @@ int main(int argc, char **argv)
 				config.max_data = atoi(optarg);
 			else if (strcmp(name, "indent-string") == 0)
 				indent_string = strdup(optarg);
+			else if (strcmp(name, "tree") == 0)
+				use_tree = 1;
 			break;
 			}
 		case 'o':
@@ -515,12 +519,20 @@ int main(int argc, char **argv)
 		usage(argv[0]);
 
 	for (i = optind; i < argc; i++) {
-		if (format)
-			ret = do_format(&config, argv[i], output);
-		else if (verify)
-			ret = do_verify(&config, argv[i]);
-		else
-			ret = do_parse(&config, argv[i]);
+		if (use_tree) {
+			json_val_t *root_structure;
+			ret = do_tree(&config, argv[i], &root_structure);
+			if (ret)
+				exit(ret);
+			print_tree(root_structure, output);
+		} else {
+			if (format)
+				ret = do_format(&config, argv[i], output);
+			else if (verify)
+				ret = do_verify(&config, argv[i]);
+			else
+				ret = do_parse(&config, argv[i]);
+		}
 		if (ret)
 			exit(ret);
 	}
