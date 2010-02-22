@@ -218,6 +218,220 @@ static int do_format(json_config *config, const char *filename, const char *outp
 	return 0;
 }
 
+
+struct json_val_elem {
+	char *key;
+	uint32_t key_length;
+	struct json_val *val;
+};
+
+typedef struct json_val {
+	int type;
+	int length;
+	union {
+		char *data;
+		struct json_val **array;
+		struct json_val_elem **object;
+	} u;
+} json_val_t;
+
+static void *tree_create_structure(int nesting, int is_object)
+{
+	json_val_t *v = malloc(sizeof(json_val_t));
+	if (v) {
+		/* instead of defining a new enum type, we abuse the
+		 * meaning of the json enum type for array and object */
+		if (is_object) {
+			v->type = JSON_OBJECT_BEGIN;
+			v->u.object = NULL;
+		} else {
+			v->type = JSON_ARRAY_BEGIN;
+			v->u.array = NULL;
+		}
+		v->length = 0;
+	}
+	return v;
+}
+
+static char *memalloc_copy_length(const char *src, uint32_t n)
+{
+	char *dest;
+
+	dest = calloc(n + 1, sizeof(char));
+	if (dest)
+		memcpy(dest, src, n);
+	return dest;
+}
+
+static void *tree_create_data(int type, const char *data, uint32_t length)
+{
+	json_val_t *v;
+
+	v = malloc(sizeof(json_val_t));
+	if (v) {
+		v->type = type;
+		v->length = length;
+		v->u.data = memalloc_copy_length(data, length);
+		if (!v->u.data) {
+			free(v);
+			return NULL;
+		}
+	}
+	return v;
+}
+
+static int tree_append(void *structure, char *key, uint32_t key_length, void *obj)
+{
+	json_val_t *parent = structure;
+	if (key) {
+		struct json_val_elem *objelem;
+
+		if (parent->length == 0) {
+			parent->u.object = calloc(1 + 1, sizeof(json_val_t *)); /* +1 for null */
+			if (!parent->u.object)
+				return 1;
+		} else {
+			uint32_t newsize = parent->length + 1 + 1; /* +1 for null */
+			void *newptr;
+
+			newptr = realloc(parent->u.object, newsize * sizeof(json_val_t *));
+			if (!newptr)
+				return -1;
+			parent->u.object = newptr;
+		}
+
+		objelem = malloc(sizeof(struct json_val_elem));
+		if (!objelem)
+			return -1;
+
+		objelem->key = memalloc_copy_length(key, key_length);
+		objelem->key_length = key_length;
+		objelem->val = obj;
+		parent->u.object[parent->length++] = objelem;
+		parent->u.object[parent->length] = NULL;
+	} else {
+		if (parent->length == 0) {
+			parent->u.array = calloc(1 + 1, sizeof(json_val_t *)); /* +1 for null */
+			if (!parent->u.array)
+				return 1;
+		} else {
+			uint32_t newsize = parent->length + 1 + 1; /* +1 for null */
+			void *newptr;
+
+			newptr = realloc(parent->u.object, newsize * sizeof(json_val_t *));
+			if (!newptr)
+				return -1;
+			parent->u.array = newptr;
+		}
+		parent->u.array[parent->length++] = obj;
+		parent->u.array[parent->length] = NULL;
+	}
+	return 0;
+}
+
+static int do_tree(json_config *config, const char *filename, json_val_t **root_structure)
+{
+	FILE *input;
+	json_parser parser;
+	json_parser_dom dom;
+	int ret;
+	int col, lines;
+
+	input = open_filename(filename, "r", 1);
+	if (!input)
+		return 2;
+
+	ret = json_parser_dom_init(&dom, tree_create_structure, tree_create_data, tree_append);
+	if (ret) {
+		fprintf(stderr, "error: initializing helper failed: [code=%d] %s\n", ret, string_of_errors[ret]);
+		return ret;
+	}
+
+	ret = json_parser_init(&parser, config, json_parser_dom_callback, &dom);
+	if (ret) {
+		fprintf(stderr, "error: initializing parser failed: [code=%d] %s\n", ret, string_of_errors[ret]);
+		return ret;
+	}
+
+	ret = process_file(&parser, input, &lines, &col);
+	if (ret) {
+		fprintf(stderr, "line %d, col %d: [code=%d] %s\n",
+		        lines, col, ret, string_of_errors[ret]);
+
+		return 1;
+	}
+
+	ret = json_parser_is_done(&parser);
+	if (!ret) {
+		fprintf(stderr, "syntax error\n");
+		return 1;
+	}
+
+	if (root_structure)
+		*root_structure = dom.root_structure;
+
+	/* cleanup */
+	json_parser_free(&parser);
+	close_filename(filename, input);
+	return 0;
+}
+
+static int print_tree_iter(json_val_t *element, FILE *output)
+{
+	int i;
+	if (!element) {
+		fprintf(stderr, "error: no element in print tree\n");
+		return -1;
+	}
+
+	switch (element->type) {
+	case JSON_OBJECT_BEGIN:
+		fprintf(output, "object begin (%d element)\n", element->length);
+		for (i = 0; i < element->length; i++) {
+			fprintf(output, "key: %s\n", element->u.object[i]->key);
+			print_tree_iter(element->u.object[i]->val, output);
+		}
+		fprintf(output, "object end\n");
+		break;
+	case JSON_ARRAY_BEGIN:
+		fprintf(output, "array begin\n");
+		for (i = 0; i < element->length; i++) {
+			print_tree_iter(element->u.array[i], output);
+		}
+		fprintf(output, "array end\n");
+		break;
+	case JSON_FALSE:
+	case JSON_TRUE:
+	case JSON_NULL:
+		fprintf(output, "constant\n");
+		break;
+	case JSON_INT:
+		fprintf(output, "integer: %s\n", element->u.data);
+		break;
+	case JSON_STRING:
+		fprintf(output, "string: %s\n", element->u.data);
+		break;
+	case JSON_FLOAT:
+		fprintf(output, "float: %s\n", element->u.data);
+		break;
+	default:
+		break;
+	}
+	return 0;
+}
+
+static int print_tree(json_val_t *root_structure, char *outputfile)
+{
+	FILE *output;
+
+	output = open_filename(outputfile, "a+", 0);
+	if (!output)
+		return 2;
+	print_tree_iter(root_structure, output);
+	close_filename(outputfile, output);
+	return 0;
+}
+
 int usage(const char *argv0)
 {
 	printf("usage: %s [options] JSON-FILE(s)...\n", argv0);
