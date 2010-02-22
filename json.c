@@ -862,3 +862,98 @@ int json_print_args(json_printer *printer,
 	va_end(ap);
 	return ret;
 }
+
+static int helper_push(struct json_parser_helper *ctx, void *val)
+{
+	if (ctx->stack_offset == ctx->stack_size) {
+		void *ptr;
+		uint32_t newsize = ctx->stack_size * 2;
+		ptr = memory_realloc(ctx->user_realloc, ctx->stack, newsize);
+		if (!ptr)
+			return JSON_ERROR_NO_MEMORY;
+		ctx->stack = ptr;
+		ctx->stack_size = newsize;
+	}
+	ctx->stack[ctx->stack_offset].val = val;
+	ctx->stack[ctx->stack_offset].key = NULL;
+	ctx->stack[ctx->stack_offset].key_length = 0;
+	ctx->stack_offset++;
+	return 0;
+}
+
+static int helper_pop(struct json_parser_helper *ctx, void **val)
+{
+	ctx->stack_offset--;
+	*val = ctx->stack[ctx->stack_offset].val;
+	return 0;
+}
+
+int json_parser_helper_init(json_parser_helper *helper,
+                            json_parser_helper_create_structure create_structure,
+                            json_parser_helper_create_data create_data,
+                            json_parser_helper_append append)
+{
+	memset(helper, 0, sizeof(*helper));
+	helper->stack_size = 1024;
+	helper->stack_offset = 0;
+	helper->stack = memory_calloc(helper->user_calloc, helper->stack_size, sizeof(*(helper->stack)));
+	if (!helper->stack)
+		return JSON_ERROR_NO_MEMORY;
+	helper->append = append;
+	helper->create_structure = create_structure;
+	helper->create_data = create_data;
+	return 0;
+}
+
+int json_parser_helper_free(json_parser_helper *helper)
+{
+	free(helper->stack);
+	return 0;
+}
+
+int json_parser_helper_callback(void *userdata, int type, const char *data, uint32_t length)
+{
+	struct json_parser_helper *ctx = userdata;
+	void *v;
+	struct stack_elem *stack = NULL;
+
+	switch (type) {
+	case JSON_ARRAY_BEGIN:
+	case JSON_OBJECT_BEGIN:
+		v = ctx->create_structure(ctx->stack_offset, type == JSON_OBJECT_BEGIN);
+		if (!v)
+			return JSON_ERROR_CALLBACK;
+		helper_push(ctx, v);
+		break;
+	case JSON_OBJECT_END:
+	case JSON_ARRAY_END:
+		helper_pop(ctx, &v);
+		if (ctx->stack_offset > 0) {
+			stack = &(ctx->stack[ctx->stack_offset - 1]);
+			ctx->append(stack->val, stack->key, stack->key_length, v);
+			free(stack->key);
+		} else
+			ctx->root_structure = v;
+		break;
+	case JSON_KEY:
+		stack = &(ctx->stack[ctx->stack_offset - 1]);
+		stack->key = memory_calloc(ctx->user_calloc, length + 1, sizeof(char));
+		stack->key_length = length;
+		if (!stack->key)
+			return JSON_ERROR_NO_MEMORY;
+		memcpy(stack->key, data, length);
+		break;
+	case JSON_STRING:
+	case JSON_INT:
+	case JSON_FLOAT:
+	case JSON_NULL:
+	case JSON_TRUE:
+	case JSON_FALSE:
+		stack = &(ctx->stack[ctx->stack_offset - 1]);
+		v = ctx->create_data(type, data, length);
+		ctx->append(stack->val, stack->key, stack->key_length, v);
+		free(stack->key);
+		break;
+	}
+	return 0;
+}

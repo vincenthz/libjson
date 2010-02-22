@@ -161,4 +161,47 @@ int json_print_raw(json_printer *printer, int type, const char *data, uint32_t l
  * the function call should always be terminated by -1 */
 int json_print_args(json_printer *, int (*f)(json_printer *, int, const char *, uint32_t), ...);
 
+/** callback from the parser_dom callback to create object and array */
+typedef void * (*json_parser_dom_create_structure)(int, int);
+
+/** callback from the parser_dom callback to create data values */
+typedef void * (*json_parser_dom_create_data)(int, const char *, uint32_t);
+
+/** callback from the parser helper callback to append a value to an object or array value
+ * append(parent, key, key_length, val); */
+typedef int (*json_parser_dom_append)(void *, char *, uint32_t, void *);
+
+/** the json_parser_dom permits to create a DOM like tree easily through the
+ * use of 3 callbacks where the user can choose the representation of the JSON values */
+typedef struct json_parser_dom
+{
+	/* object stack */
+	struct stack_elem { void *val; char *key; uint32_t key_length; } *stack;
+	uint32_t stack_size;
+	uint32_t stack_offset;
+
+	/* overridable memory allocator */
+	void * (*user_calloc)(size_t nmemb, size_t size);
+	void * (*user_realloc)(void *ptr, size_t size);
+
+	/* returned root structure (object or array) */
+	void *root_structure;
+
+	/* callbacks */
+	json_parser_dom_create_structure create_structure;
+	json_parser_dom_create_data create_data;
+	json_parser_dom_append append;
+} json_parser_dom;
+
+/** initialize a parser dom structure with the necessary callbacks */
+int json_parser_dom_init(json_parser_dom *helper,
+                         json_parser_dom_create_structure create_structure,
+                         json_parser_dom_create_data create_data,
+                         json_parser_dom_append append);
+/** free memory allocated by the DOM callback helper */
+int json_parser_dom_free(json_parser_dom *ctx);
+
+/** helper to parser callback that arrange parsing events into comprehensive JSON data structure */
+int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_t length);
+
 #endif /* JSON_H */
