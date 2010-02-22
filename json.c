@@ -863,7 +863,7 @@ int json_print_args(json_printer *printer,
 	return ret;
 }
 
-static int helper_push(struct json_parser_helper *ctx, void *val)
+static int dom_push(struct json_parser_dom *ctx, void *val)
 {
 	if (ctx->stack_offset == ctx->stack_size) {
 		void *ptr;
@@ -881,39 +881,39 @@ static int helper_push(struct json_parser_helper *ctx, void *val)
 	return 0;
 }
 
-static int helper_pop(struct json_parser_helper *ctx, void **val)
+static int dom_pop(struct json_parser_dom *ctx, void **val)
 {
 	ctx->stack_offset--;
 	*val = ctx->stack[ctx->stack_offset].val;
 	return 0;
 }
 
-int json_parser_helper_init(json_parser_helper *helper,
-                            json_parser_helper_create_structure create_structure,
-                            json_parser_helper_create_data create_data,
-                            json_parser_helper_append append)
+int json_parser_dom_init(json_parser_dom *dom,
+                         json_parser_dom_create_structure create_structure,
+                         json_parser_dom_create_data create_data,
+                         json_parser_dom_append append)
 {
-	memset(helper, 0, sizeof(*helper));
-	helper->stack_size = 1024;
-	helper->stack_offset = 0;
-	helper->stack = memory_calloc(helper->user_calloc, helper->stack_size, sizeof(*(helper->stack)));
-	if (!helper->stack)
+	memset(dom, 0, sizeof(*dom));
+	dom->stack_size = 1024;
+	dom->stack_offset = 0;
+	dom->stack = memory_calloc(dom->user_calloc, dom->stack_size, sizeof(*(dom->stack)));
+	if (!dom->stack)
 		return JSON_ERROR_NO_MEMORY;
-	helper->append = append;
-	helper->create_structure = create_structure;
-	helper->create_data = create_data;
+	dom->append = append;
+	dom->create_structure = create_structure;
+	dom->create_data = create_data;
 	return 0;
 }
 
-int json_parser_helper_free(json_parser_helper *helper)
+int json_parser_dom_free(json_parser_dom *dom)
 {
-	free(helper->stack);
+	free(dom->stack);
 	return 0;
 }
 
-int json_parser_helper_callback(void *userdata, int type, const char *data, uint32_t length)
+int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_t length)
 {
-	struct json_parser_helper *ctx = userdata;
+	struct json_parser_dom *ctx = userdata;
 	void *v;
 	struct stack_elem *stack = NULL;
 
@@ -923,11 +923,11 @@ int json_parser_helper_callback(void *userdata, int type, const char *data, uint
 		v = ctx->create_structure(ctx->stack_offset, type == JSON_OBJECT_BEGIN);
 		if (!v)
 			return JSON_ERROR_CALLBACK;
-		helper_push(ctx, v);
+		dom_push(ctx, v);
 		break;
 	case JSON_OBJECT_END:
 	case JSON_ARRAY_END:
-		helper_pop(ctx, &v);
+		dom_pop(ctx, &v);
 		if (ctx->stack_offset > 0) {
 			stack = &(ctx->stack[ctx->stack_offset - 1]);
 			ctx->append(stack->val, stack->key, stack->key_length, v);
