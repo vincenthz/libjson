@@ -36,6 +36,7 @@ char *string_of_errors[] =
 	[JSON_ERROR_UNICODE_MISSING_LOW_SURROGATE] = "missing unicode low surrogate",
 	[JSON_ERROR_UNICODE_UNEXPECTED_LOW_SURROGATE] = "unexpected unicode low surrogate",
 	[JSON_ERROR_COMMA_OUT_OF_STRUCTURE] = "error comma out of structure",
+	[JSON_ERROR_CALLBACK] = "error in a callback"
 };
 
 static int printchannel(void *userdata, const char *data, uint32_t length)

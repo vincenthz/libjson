@@ -62,6 +62,8 @@ typedef enum
 	JSON_ERROR_UNICODE_UNEXPECTED_LOW_SURROGATE,
 	/* found a comma not in structure (array/object) */
 	JSON_ERROR_COMMA_OUT_OF_STRUCTURE,
+	/* callback returns error */
+	JSON_ERROR_CALLBACK,
 } json_error;
 
 #define LIBJSON_DEFAULT_STACK_SIZE 256
