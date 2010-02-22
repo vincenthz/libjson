@@ -257,6 +257,7 @@ int main(int argc, char **argv)
 			{ "max-nesting", 1, 0, 0 },
 			{ "max-data", 1, 0, 0 },
 			{ "indent-string", 1, 0, 0 },
+			{ 0 },
 		};
 		int c = getopt_long(argc, argv, "o:", long_options, &option_index);
 		if (c == -1)
