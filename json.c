@@ -154,7 +154,7 @@ enum actions {
 	  S(c1),S(d1),S(e1),S(f1),S(g1),S(h1) }
 
 /* map from the (previous state+new character class) to the next parser transition */
-static uint8_t state_transition_table[NR_STATES][NR_CLASSES] = {
+static const uint8_t state_transition_table[NR_STATES][NR_CLASSES] = {
 /*             white                                                                            ABCDF  other    */
 /*         sp nl |  {  }  [  ]  :  ,  "  \  /  +  -  .  0  19 a  b  c  d  e  f  l  n  r  s  t  u  |  E  |  *  # */
 /*GO*/ PT_(GO,GO,GO,OB,__,AB,__,__,__,__,__,CB,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,YB),
@@ -203,7 +203,7 @@ static uint8_t state_transition_table[NR_STATES][NR_CLASSES] = {
 #undef PT_
 
 /* map from (previous state+new character class) to the buffer policy. ignore=0/append=1/escape=2 */
-static uint8_t buffer_policy_table[NR_STATES][NR_CLASSES] = {
+static const uint8_t buffer_policy_table[NR_STATES][NR_CLASSES] = {
 /*          white                                                                            ABCDF  other     */
 /*      sp nl  |  {  }  [  ]  :  ,  "  \  /  +  -  .  0  19 a  b  c  d  e  f  l  n  r  s  t  u  |  E  |  *  # */
 /*GO*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
