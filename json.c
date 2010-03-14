@@ -369,14 +369,18 @@ static int do_buffer(json_parser *parser)
 	return ret;
 }
 
-static inline unsigned int hex(char c)
-{
-	/* rely on the transition table to append the right thing
-	   and the ascii order that '0'..'9' < 'A'..'F' < 'a'..'f' */
-	if (c <= '9') return c - '0';
-	else if (c <= 'F') return c - 'A' + 10;
-	else return c - 'a' + 10;
-}
+static const uint8_t hextable[] = {
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1,
+	-1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+};
+
+#define hex(c) (hextable[(uint8_t) c])
 
 /* high surrogate range from d800 to dbff */
 /* low surrogate range dc00 to dfff */
