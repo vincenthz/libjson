@@ -18,7 +18,7 @@
 #include <stdlib.h>
 
 #define JSON_MAJOR 	0
-#define JSON_MINOR	6
+#define JSON_MINOR	7
 #define JSON_VERSION	(JSON_MAJOR * 100 + JSON_MINOR)
 
 typedef enum 

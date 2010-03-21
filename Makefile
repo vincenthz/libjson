@@ -8,7 +8,7 @@ INSTALL_EXEC = install -m 755 -o root -g root
 INSTALL_DATA = install -m 644 -o root -g root
 
 MAJOR = 0
-MINOR = 6
+MINOR = 7
 MICRO = 0
 
 A_TARGETS = libjson.a
