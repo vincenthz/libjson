@@ -279,6 +279,58 @@ int my_callback(void *userdata, int type, const char *data, uint32_t length)
 }
 }}}
 
+== Parser configuration
+
+Parser configuration can be set when initializing the parsing context. this is done by
+passing a non-NULL pointer to a valid json_config.
+
+The configuration structure support 7 differents variables, which can be group
+in 3 categories:
+
+* user defined memory functions.
+* security.
+* optional extensions.
+
+=== User defined memory function
+
+The library user can choose to redefine its own allocation functions (realloc
+and calloc), in this case the parser will allocate using those functions. this
+is controlled by user_calloc and user_realloc.
+
+=== Security
+
+there's 2 security settings available: max_nesting and max_data.
+
+max_data control the size of data allowed, which control the maximum size of
+int, string, float, and keys in bytes. this is directly connected to the
+size of the data buffer. if set to 0, the buffer will try to grow each time
+it's necessary.
+
+max_nesting controls the number of nested structures allowed by the parser.
+each new nesting increases the parser memory use by 1 byte (for 4096 nested
+structures, you need 4K of memory).
+
+For security purpose, if the parser is directly connected to a network stream,
+setting those variables, is strongly recommended.
+
+=== Comments
+
+You can enable C comments and enable YAML comments arbitrarly from each other.
+
+allow_c_comment will enable C comment: starting at /*, and finishing at */
+
+allow_yaml_comment will enable YAML/python comment: starting at # and finishing
+at the end of line.
+
+comments cannot be nested.
+
+{{{
+{
+	# this is a YAML comment
+	"key": /* this is a C comment */ 123,
+}
+}}}
+
 = Printing API
 
 == Printing context
@@ -440,4 +492,14 @@ json_parser parser;
 
 json_parser_dom_init(&helper, create_structure, create_data, append);
 json_parser_init(&parser, json_parser_dom_callback, &helper);
+}}}
+
+= JSONlint utility
+
+JSONlint is a small utility using libjson. it's able to verify and reformat JSON file.
+
+the following will reformat input.json file and create a file output.json:
+
+{{{
+jsonlint --format input.json -o output.json
 }}}
