@@ -62,7 +62,8 @@ install-lib: $(SO_TARGETS) $(A_TARGETS) $(PC_TARGET)
 	mkdir -p $(PREFIX)/include
 	$(INSTALL_DATA) -t $(PREFIX)/include $(HEADERS)
 	mkdir -p $(PREFIX)/lib
-	$(INSTALL_EXEC) -t $(PREFIX)/lib $(SO_FILE) $(A_TARGETS)
+	$(INSTALL_EXEC) -t $(PREFIX)/lib $(SO_FILE)
+	$(INSTALL_DATA) -t $(PREFIX)/lib $(A_TARGETS)
 	$(INSTALL_SOLINKS) $(SO_LINKS) $(PREFIX)/lib
 
 install-bin: $(BIN_TARGETS)
