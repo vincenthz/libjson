@@ -50,7 +50,7 @@ $(NAME)lint: $(NAME)lint.o $(NAME).o
 
 .PHONY: lib$(NAME).pc
 lib$(NAME).pc: lib$(NAME).pc.in
-	sed -e 's;@PREFIX@;$(PREFIX);' -e 's;@LIB$(NAME)_VER_MAJOR@;$(MAJOR);' -e 's;@LIB$(NAME)_VER_MINOR@;$(MINOR);' < $< > $@
+	sed -e 's;@PREFIX@;$(PREFIX);' -e 's;@LIBJSON_VER_MAJOR@;$(MAJOR);' -e 's;@LIBJSON_VER_MINOR@;$(MINOR);' < $< > $@
 
 .PHONY: tests clean install install-bin install-lib
 tests: $(NAME)lint
