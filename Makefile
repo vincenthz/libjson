@@ -16,7 +16,7 @@ SO_TARGETS = libjson.so libjson.so.$(MAJOR) libjson.so.$(MAJOR).$(MINOR) libjson
 BIN_TARGETS = jsonlint
 PC_TARGET = libjson.pc
 
-PREFIX ?=
+PREFIX ?= /usr
 
 TARGETS = $(A_TARGETS) $(SO_TARGETS) $(BIN_TARGETS)
 
@@ -45,23 +45,23 @@ jsonlint: jsonlint.o json.o
 
 .PHONY: libjson.pc
 libjson.pc: libjson.pc.in
-	sed -e 's;@PREFIX@;/usr;' -e 's;@LIBJSON_VER_MAJOR@;$(MAJOR);' -e 's;@LIBJSON_VER_MINOR@;$(MINOR);' < $< > $@
+	sed -e 's;@PREFIX@;$(PREFIX);' -e 's;@LIBJSON_VER_MAJOR@;$(MAJOR);' -e 's;@LIBJSON_VER_MINOR@;$(MINOR);' < $< > $@
 
 .PHONY: tests clean install install-bin install-lib
 tests: jsonlint
 	(cd tests; ./runtest)
 
 install-lib: $(SO_TARGETS) $(A_TARGETS) $(PC_TARGET)
-	mkdir -p $(PREFIX)/usr/lib/pkgconfig
-	$(INSTALL_DATA) -t $(PREFIX)/usr/lib/pkgconfig $(PC_TARGET)
-	mkdir -p $(PREFIX)/usr/include
-	$(INSTALL_DATA) -t $(PREFIX)/usr/include json.h
-	mkdir -p $(PREFIX)/usr/lib
-	$(INSTALL_EXEC) -t $(PREFIX)/usr/lib $(SO_TARGETS) $(A_TARGETS)
+	mkdir -p $(PREFIX)/lib/pkgconfig
+	$(INSTALL_DATA) -t $(PREFIX)/lib/pkgconfig $(PC_TARGET)
+	mkdir -p $(PREFIX)/include
+	$(INSTALL_DATA) -t $(PREFIX)/include json.h
+	mkdir -p $(PREFIX)/lib
+	$(INSTALL_EXEC) -t $(PREFIX)/lib $(SO_TARGETS) $(A_TARGETS)
 
 install-bin: $(BIN_TARGETS)
-	mkdir -p $(PREFIX)/usr/bin
-	$(INSTALL_EXEC) -t $(PREFIX)/usr/bin $(BIN_TARGETS)
+	mkdir -p $(PREFIX)/bin
+	$(INSTALL_EXEC) -t $(PREFIX)/bin $(BIN_TARGETS)
 
 install: install-lib install-bin
 
