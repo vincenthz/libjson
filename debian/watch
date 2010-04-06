@@ -1,0 +1,4 @@
+# Compulsory line, this is a version 3 file
+version=3
+
+http://projects.snarc.org/libjson/download/libjson-(.*)\.tar\.gz

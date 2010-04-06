@@ -1,0 +1,22 @@
+Source: libjson
+Priority: extra
+Maintainer: William Dauchy <wdauchy@gmail.com>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.4
+Section: libs
+Homepage: http://projects.snarc.org/libjson/
+
+Package: libjson-dev
+Section: libdevel
+Architecture: any
+Depends: libjson (= ${binary:Version})
+Description: Development files for libjson
+ This package contains the header files and static library needed to
+ compile applications that use confuse.
+
+Package: libjson
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Library to parse and pretty print the json format (RFC4627).
+ The JSON format is a concise and structured data format.

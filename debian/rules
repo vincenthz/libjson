@@ -1,0 +1,58 @@
+#!/usr/bin/make -f
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+CFLAGS = -Wall -Wno-unused -g -fPIC
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+else
+	CFLAGS += -O2
+endif
+
+build: build-stamp
+
+build-stamp:
+	dh_testdir
+	$(MAKE)
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_clean
+	rm -f build-stamp
+	$(MAKE) clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_clean
+	dh_installdirs
+	$(MAKE) install PREFIX=$(CURDIR)/debian/tmp/usr
+	$(MAKE) libjson.pc PREFIX=/usr
+	mv libjson.pc $(CURDIR)/debian/tmp/usr/lib/pkgconfig/
+	dh_install --list-missing
+
+binary-indep: build install
+
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs
+	dh_installdocs
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_makeshlibs -V
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install
