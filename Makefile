@@ -22,6 +22,8 @@ SO_FILE = lib$(NAME).so.$(MAJOR).$(MINOR).$(MICRO)
 HEADERS = $(NAME).h
 
 PREFIX ?= /usr
+DESTDIR ?=
+INSTALLDIR ?= $(DESTDIR)$(PREFIX)
 
 TARGETS = $(A_TARGETS) $(SO_FILE) $(SO_LINKS) $(BIN_TARGETS) $(PC_TARGET)
 
@@ -57,18 +59,18 @@ tests: $(NAME)lint
 	(cd tests; ./runtest)
 
 install-lib: $(SO_TARGETS) $(A_TARGETS) $(PC_TARGET)
-	mkdir -p $(PREFIX)/lib/pkgconfig
-	$(INSTALL_DATA) -t $(PREFIX)/lib/pkgconfig $(PC_TARGET)
-	mkdir -p $(PREFIX)/include
-	$(INSTALL_DATA) -t $(PREFIX)/include $(HEADERS)
-	mkdir -p $(PREFIX)/lib
-	$(INSTALL_EXEC) -t $(PREFIX)/lib $(SO_FILE)
-	$(INSTALL_DATA) -t $(PREFIX)/lib $(A_TARGETS)
-	$(INSTALL_SOLINKS) $(SO_LINKS) $(PREFIX)/lib
+	mkdir -p $(INSTALLDIR)/lib/pkgconfig
+	$(INSTALL_DATA) -t $(INSTALLDIR)/lib/pkgconfig $(PC_TARGET)
+	mkdir -p $(INSTALLDIR)/include
+	$(INSTALL_DATA) -t $(INSTALLDIR)/include $(HEADERS)
+	mkdir -p $(INSTALLDIR)/lib
+	$(INSTALL_EXEC) -t $(INSTALLDIR)/lib $(SO_FILE)
+	$(INSTALL_DATA) -t $(INSTALLDIR)/lib $(A_TARGETS)
+	$(INSTALL_SOLINKS) $(SO_LINKS) $(INSTALLDIR)/lib
 
 install-bin: $(BIN_TARGETS)
-	mkdir -p $(PREFIX)/bin
-	$(INSTALL_EXEC) -t $(PREFIX)/bin $(BIN_TARGETS)
+	mkdir -p $(INSTALLDIR)/bin
+	$(INSTALL_EXEC) -t $(INSTALLDIR)/bin $(BIN_TARGETS)
 
 install: install-lib install-bin
 
