@@ -32,8 +32,6 @@ install: build
 	dh_clean
 	dh_installdirs
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp PREFIX=/usr
-	#$(MAKE) install PREFIX=$(CURDIR)/debian/tmp/usr
-	#$(MAKE) libjson.pc PREFIX=/usr
 	mv libjson.pc $(CURDIR)/debian/tmp/usr/lib/pkgconfig/
 	dh_install --list-missing
 
