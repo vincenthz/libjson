@@ -581,7 +581,7 @@ static int do_action(json_parser *parser, int next_state)
 			CHK(do_buffer(parser));
 		CHK((descr->call)(parser));
 	}
-	if (descr->state)	
+	if (descr->state)
 		parser->state = descr->state;
 	parser->type = descr->type;
 	return ret;
