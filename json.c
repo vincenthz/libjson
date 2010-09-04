@@ -574,9 +574,9 @@ static struct action_descr actions_map[] = {
 static int do_action(json_parser *parser, int next_state)
 {
 	struct action_descr *descr = &actions_map[next_state & ~0x80];
-	int ret;
 
 	if (descr->call) {
+		int ret;
 		if (descr->dobuffer)
 			CHK(do_buffer(parser));
 		CHK((descr->call)(parser));
@@ -584,7 +584,7 @@ static int do_action(json_parser *parser, int next_state)
 	if (descr->state)
 		parser->state = descr->state;
 	parser->type = descr->type;
-	return ret;
+	return 0;
 }
 
 /** json_parser_init initialize a parser structure taking a config,
