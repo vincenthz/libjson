@@ -14,8 +14,16 @@
 #ifndef JSON_H
 #define JSON_H
 
-#include <stdint.h>
 #include <stdlib.h>
+
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+// MSVC does not include stdint.h before version 10.0
+typedef unsigned __int8 uint8_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int32 uint32_t;
+#else
+#include <stdint.h>
+#endif
 
 #define JSON_MAJOR 	0
 #define JSON_MINOR	7
