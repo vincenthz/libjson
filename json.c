@@ -454,7 +454,7 @@ static int buffer_push_escape(json_parser *parser, unsigned char next)
 	return buffer_push(parser, c);
 }
 
-#define CHK(f) ({ ret = f; if (ret) return ret; })
+#define CHK(f) do { ret = f; if (ret) return ret; } while(0)
 
 int act_uc(json_parser *parser)
 {
