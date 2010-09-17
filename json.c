@@ -735,7 +735,7 @@ int json_print_free(json_printer *printer)
  * XXX: it doesn't do unicode verification. yet?. */
 static int print_string(json_printer *printer, const char *data, uint32_t length)
 {
-	int i;
+	uint32_t i;
 
 	printer->callback(printer->userdata, "\"", 1);
 	for (i = 0; i < length; i++) {
