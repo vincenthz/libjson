@@ -23,6 +23,10 @@
 #include <stdarg.h>
 #include "json.h"
 
+#ifdef _MSC_VER
+#define inline _inline
+#endif
+
 #ifdef TRACING_ENABLE
 #include <stdio.h>
 #define TRACING(fmt, ...)	fprintf(stderr, "tracing: " fmt, ##__VA_ARGS__)
