@@ -554,25 +554,25 @@ struct action_descr
 };
 
 static struct action_descr actions_map[] = {
-	[STATE_MX & ~0x80] = { NULL,   JSON_INT,   STATE_M0, 0 },
-	[STATE_ZX & ~0x80] = { NULL,   JSON_INT,   STATE_Z0, 0 },
-	[STATE_IX & ~0x80] = { NULL,   JSON_INT,   STATE_I0, 0 },
-	[STATE_DE & ~0x80] = { NULL,   JSON_FLOAT, STATE_X1, 0 },
-	[STATE_DF & ~0x80] = { NULL,   JSON_FLOAT, STATE_R1, 0 },
-	[STATE_NU & ~0x80] = { NULL,   JSON_NULL,  STATE_OK, 0 },
-	[STATE_FA & ~0x80] = { NULL,   JSON_FALSE, STATE_OK, 0 },
-	[STATE_TR & ~0x80] = { NULL,   JSON_TRUE,  STATE_OK, 0 },
-	[STATE_KS & ~0x80] = { NULL,   JSON_NONE,  STATE__V, 0 },
-	[STATE_UC & ~0x80] = { act_uc, JSON_NONE,  0,        0 },
-	[STATE_YB & ~0x80] = { act_yb, JSON_NONE,  STATE_Y1, 1 },
-	[STATE_CB & ~0x80] = { act_cb, JSON_NONE,  STATE_C1, 1 },
-	[STATE_CE & ~0x80] = { act_ce, JSON_NONE,  0,        0 },
-	[STATE_OB & ~0x80] = { act_ob, JSON_NONE,  STATE__O, 0 },
-	[STATE_OE & ~0x80] = { act_oe, JSON_NONE,  STATE_OK, 1 },
-	[STATE_AB & ~0x80] = { act_ab, JSON_NONE,  STATE__A, 0 },
-	[STATE_AE & ~0x80] = { act_ae, JSON_NONE,  STATE_OK, 1 },
-	[STATE_SE & ~0x80] = { act_se, JSON_NONE,  0,        0 },
-	[STATE_SP & ~0x80] = { act_sp, JSON_NONE,  0,        1 },
+	{ NULL,   JSON_NONE,  STATE__V, 0 }, /* KS */
+	{ act_sp, JSON_NONE,  0,        1 }, /* SP */
+	{ act_ab, JSON_NONE,  STATE__A, 0 }, /* AB */
+	{ act_ae, JSON_NONE,  STATE_OK, 1 }, /* AE */
+	{ act_ob, JSON_NONE,  STATE__O, 0 }, /* OB */
+	{ act_oe, JSON_NONE,  STATE_OK, 1 }, /* OE */
+	{ act_cb, JSON_NONE,  STATE_C1, 1 }, /* CB */
+	{ act_yb, JSON_NONE,  STATE_Y1, 1 }, /* YB */
+	{ act_ce, JSON_NONE,  0,        0 }, /* CE */
+	{ NULL,   JSON_FALSE, STATE_OK, 0 }, /* FA */
+	{ NULL,   JSON_TRUE,  STATE_OK, 0 }, /* TR */
+	{ NULL,   JSON_NULL,  STATE_OK, 0 }, /* NU */
+	{ NULL,   JSON_FLOAT, STATE_X1, 0 }, /* DE */
+	{ NULL,   JSON_FLOAT, STATE_R1, 0 }, /* DF */
+	{ act_se, JSON_NONE,  0,        0 }, /* SE */
+	{ NULL,   JSON_INT,   STATE_M0, 0 }, /* MX */
+	{ NULL,   JSON_INT,   STATE_Z0, 0 }, /* ZX */
+	{ NULL,   JSON_INT,   STATE_I0, 0 }, /* IX */
+	{ act_uc, JSON_NONE,  0,        0 }, /* UC */
 };
 
 static int do_action(json_parser *parser, int next_state)
