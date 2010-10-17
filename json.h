@@ -14,6 +14,10 @@
 #ifndef JSON_H
 #define JSON_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 
 #if defined(_MSC_VER) && (_MSC_VER < 1600)
@@ -211,5 +215,9 @@ int json_parser_dom_free(json_parser_dom *ctx);
 
 /** helper to parser callback that arrange parsing events into comprehensive JSON data structure */
 int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_t length);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* JSON_H */
