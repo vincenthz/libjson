@@ -871,7 +871,7 @@ int json_print_args(json_printer *printer,
 	return ret;
 }
 
-static int dom_push(struct json_parser_dom *ctx, void *val)
+static int dom_push(struct json_parser_dom *ctx, void *val, int is_object_structure)
 {
 	if (ctx->stack_offset == ctx->stack_size) {
 		void *ptr;
@@ -885,6 +885,8 @@ static int dom_push(struct json_parser_dom *ctx, void *val)
 	ctx->stack[ctx->stack_offset].val = val;
 	ctx->stack[ctx->stack_offset].key = NULL;
 	ctx->stack[ctx->stack_offset].key_length = 0;
+	ctx->stack[ctx->stack_offset].is_object_structure = is_object_structure;
+	ctx->stack[ctx->stack_offset].structure_value_count = 0;
 	ctx->stack_offset++;
 	return 0;
 }
@@ -897,9 +899,11 @@ static int dom_pop(struct json_parser_dom *ctx, void **val)
 }
 
 int json_parser_dom_init(json_parser_dom *dom,
-                         json_parser_dom_create_structure create_structure,
+                         json_parser_dom_begin_structure begin_structure,
+                         json_parser_dom_end_structure end_structure,
                          json_parser_dom_create_data create_data,
-                         json_parser_dom_append append)
+                         json_parser_dom_append append,
+                         void *user_context)
 {
 	memset(dom, 0, sizeof(*dom));
 	dom->stack_size = 1024;
@@ -908,8 +912,10 @@ int json_parser_dom_init(json_parser_dom *dom,
 	if (!dom->stack)
 		return JSON_ERROR_NO_MEMORY;
 	dom->append = append;
-	dom->create_structure = create_structure;
+	dom->begin_structure = begin_structure;
+    dom->end_structure = end_structure;
 	dom->create_data = create_data;
+    dom->user_context = user_context;
 	return 0;
 }
 
@@ -928,17 +934,20 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
 	switch (type) {
 	case JSON_ARRAY_BEGIN:
 	case JSON_OBJECT_BEGIN:
-		v = ctx->create_structure(ctx->stack_offset, type == JSON_OBJECT_BEGIN);
+        if (ctx->stack_offset > 0) {
+            stack = &(ctx->stack[ctx->stack_offset - 1]);
+        }
+        v = ctx->begin_structure(ctx->stack_offset, type == JSON_OBJECT_BEGIN, stack?stack->key:NULL, stack?stack->key_length:0, ctx->user_context);
 		if (!v)
 			return JSON_ERROR_CALLBACK;
-		dom_push(ctx, v);
+		dom_push(ctx, v, type == JSON_OBJECT_BEGIN);
 		break;
 	case JSON_OBJECT_END:
 	case JSON_ARRAY_END:
 		dom_pop(ctx, &v);
 		if (ctx->stack_offset > 0) {
 			stack = &(ctx->stack[ctx->stack_offset - 1]);
-			ctx->append(stack->val, stack->key, stack->key_length, v);
+			ctx->end_structure(ctx->stack_offset, type == JSON_OBJECT_BEGIN, stack->key, stack->key_length, v, ctx->user_context);
 			free(stack->key);
 		} else
 			ctx->root_structure = v;
@@ -958,8 +967,9 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
 	case JSON_TRUE:
 	case JSON_FALSE:
 		stack = &(ctx->stack[ctx->stack_offset - 1]);
-		v = ctx->create_data(type, data, length);
-		ctx->append(stack->val, stack->key, stack->key_length, v);
+		v = ctx->create_data(type, data, length, ctx->user_context);
+		ctx->append(stack->val, stack->is_object_structure, stack->structure_value_count,stack->key, stack->key_length, v, ctx->user_context);
+        stack->structure_value_count++;
 		free(stack->key);
 		break;
 	}
