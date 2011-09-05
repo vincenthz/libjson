@@ -947,9 +947,10 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
 		dom_pop(ctx, &v);
 		if (ctx->stack_offset > 0) {
 			stack = &(ctx->stack[ctx->stack_offset - 1]);
-			ctx->end_structure(ctx->stack_offset, type == JSON_OBJECT_BEGIN, stack->key, stack->key_length, v, ctx->user_context);
+			ctx->end_structure(ctx->stack_offset, type == JSON_OBJECT_END, stack->key, stack->key_length, v, ctx->user_context);
 			free(stack->key);
 		} else
+            ctx->end_structure(ctx->stack_offset, type == JSON_OBJECT_END, NULL, 0, v, ctx->user_context);
 			ctx->root_structure = v;
 		break;
 	case JSON_KEY:
