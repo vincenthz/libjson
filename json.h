@@ -174,7 +174,7 @@ int json_print_raw(json_printer *printer, int type, const char *data, uint32_t l
 int json_print_args(json_printer *, int (*f)(json_printer *, int, const char *, uint32_t), ...);
 
 /** callback from the parser_dom callback to create object and array */
-typedef void * (*json_parser_dom_begin_structure)(int, int, const char *, int, void *);
+typedef void * (*json_parser_dom_begin_structure)(int, int, void *, int, const char *, int, void *);
 
 /** callback from the parser_dom callback to create object and array */
 typedef int (*json_parser_dom_end_structure)(int, int, const char *, int, void *, void *);

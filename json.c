@@ -938,7 +938,7 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
         if (ctx->stack_offset > 0) {
             stack = &(ctx->stack[ctx->stack_offset - 1]);
         }
-        v = ctx->begin_structure(ctx->stack_offset, type == JSON_OBJECT_BEGIN, stack?stack->key:NULL, stack?stack->key_length:0, ctx->user_context);
+        v = ctx->begin_structure(ctx->stack_offset, type == JSON_OBJECT_BEGIN, stack?stack->val:NULL, stack?stack->is_object_structure:0, stack?stack->key:NULL, stack?stack->key_length:0, ctx->user_context);
 		if (!v)
 			return JSON_ERROR_CALLBACK;
 		dom_push(ctx, v, type == JSON_OBJECT_BEGIN);
@@ -952,7 +952,7 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
 			free(stack->key);
 		} else
             ctx->end_structure(ctx->stack_offset, type == JSON_OBJECT_END, NULL, 0, v, ctx->user_context);
-			ctx->root_structure = v;
+        ctx->root_structure = v;
 		break;
 	case JSON_KEY:
 		stack = &(ctx->stack[ctx->stack_offset - 1]);

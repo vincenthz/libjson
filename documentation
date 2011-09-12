@@ -450,12 +450,24 @@ the following example hook into a hypothetical framework with array and object
 special method:
 
 {{{!C
-void *tree_begin_structure(int nesting, int is_object, const char *key, int key_length, void *user_context)
+void *tree_begin_structure(int nesting, int is_object, void *structure, int is_object_structure, const char *key, int key_length, void *user_context)
 {
+    void *new_structure;
+    
 	if (is_object)
-		return new_object();
+		new_structure = new_object();
 	else
-		return new_array();
+		new_structure = new_array();
+        
+	if (is_object_structure) {
+		my_object_structure *object_structure = structure;
+		append_object(my_object_structure, key, key_length, new_structure);
+	} else {
+		my_array *array = structure;
+		append_array(array, new_structure);
+	}
+    
+    return new_structure;
 }
 
 int tree_end_structure(int nesting, int is_object, const char *key, int key_length, void *structure, void *user_context)
