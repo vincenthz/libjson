@@ -460,7 +460,7 @@ static int buffer_push_escape(json_parser *parser, unsigned char next)
 
 #define CHK(f) do { ret = f; if (ret) return ret; } while(0)
 
-int act_uc(json_parser *parser)
+static int act_uc(json_parser *parser)
 {
 	int ret;
 	CHK(decode_unicode_char(parser));
@@ -468,7 +468,7 @@ int act_uc(json_parser *parser)
 	return 0;
 }
 
-int act_yb(json_parser *parser)
+static int act_yb(json_parser *parser)
 {
 	if (!parser->config.allow_yaml_comments)
 		return JSON_ERROR_COMMENT_NOT_ALLOWED;
@@ -476,7 +476,7 @@ int act_yb(json_parser *parser)
 	return 0;
 }
 
-int act_cb(json_parser *parser)
+static int act_cb(json_parser *parser)
 {
 	if (!parser->config.allow_c_comments)
 		return JSON_ERROR_COMMENT_NOT_ALLOWED;
@@ -484,13 +484,13 @@ int act_cb(json_parser *parser)
 	return 0;
 }
 
-int act_ce(json_parser *parser)
+static int act_ce(json_parser *parser)
 {
 	parser->state = (parser->save_state > STATE__A) ? STATE_OK : parser->save_state;
 	return 0;
 }
 
-int act_ob(json_parser *parser)
+static int act_ob(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback(parser, JSON_OBJECT_BEGIN));
@@ -499,7 +499,7 @@ int act_ob(json_parser *parser)
 	return 0;
 }
 
-int act_oe(json_parser *parser)
+static int act_oe(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback(parser, JSON_OBJECT_END));
@@ -508,14 +508,15 @@ int act_oe(json_parser *parser)
 	return 0;
 }
 
-int act_ab(json_parser *parser)
+static int act_ab(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback(parser, JSON_ARRAY_BEGIN));
 	CHK(state_push(parser, MODE_ARRAY));
 	return 0;
 }
-int act_ae(json_parser *parser)
+
+static int act_ae(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback(parser, JSON_ARRAY_END));
@@ -523,7 +524,7 @@ int act_ae(json_parser *parser)
 	return 0;
 }
 
-int act_se(json_parser *parser)
+static int act_se(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback_withbuf(parser, (parser->expecting_key) ? JSON_KEY : JSON_STRING));
@@ -533,7 +534,7 @@ int act_se(json_parser *parser)
 	return 0;
 }
 
-int act_sp(json_parser *parser)
+static int act_sp(json_parser *parser)
 {
 	if (parser->stack_offset == 0)
 		return JSON_ERROR_COMMA_OUT_OF_STRUCTURE;
@@ -765,7 +766,7 @@ static int print_indent(json_printer *printer)
 	return 0;
 }
 
-int json_print_mode(json_printer *printer, int type, const char *data, uint32_t length, int pretty)
+static int json_print_mode(json_printer *printer, int type, const char *data, uint32_t length, int pretty)
 {
 	int enterobj = printer->enter_object;
 
