@@ -833,12 +833,12 @@ int json_print_raw(json_printer *printer, int type, const char *data, uint32_t l
 
 /** json_print_args takes multiple types and pass them to the printer function */
 int json_print_args(json_printer *printer,
-                    int (*f)(json_printer *, int, const char *, uint32_t),
+                    int (*f)(json_printer *, int, const char *, size_t),
                     ...)
 {
 	va_list ap;
 	char *data;
-	uint32_t length;
+	size_t length;
 	int type, ret;
 
 	ret = 0;
@@ -859,7 +859,7 @@ int json_print_args(json_printer *printer,
 		case JSON_KEY:
 		case JSON_STRING:
 			data = va_arg(ap, char *);
-			length = va_arg(ap, uint32_t);
+			length = va_arg(ap, size_t);
 			if (length == -1)
 				length = strlen(data);
 			ret = (*f)(printer, type, data, length);
@@ -926,7 +926,7 @@ int json_parser_dom_free(json_parser_dom *dom)
 	return 0;
 }
 
-int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_t length)
+int json_parser_dom_callback(void *userdata, int type, const char *data, size_t length)
 {
 	struct json_parser_dom *ctx = userdata;
 	void *v;
