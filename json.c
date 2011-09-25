@@ -970,7 +970,10 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, size_t 
 	case JSON_FALSE:
 		stack = &(ctx->stack[ctx->stack_offset - 1]);
 		v = ctx->create_data(type, data, length, ctx->user_context);
-		ctx->append(stack->val, stack->is_object_structure, stack->structure_value_count,stack->key, stack->key_length, v, ctx->user_context);
+        if (!v)
+            return JSON_ERROR_CALLBACK;
+        if (ctx->append(stack->val, stack->is_object_structure, stack->structure_value_count,stack->key, stack->key_length, v, ctx->user_context) != 0)
+            return JSON_ERROR_CALLBACK;
         stack->structure_value_count++;
 		free(stack->key);
 		break;
