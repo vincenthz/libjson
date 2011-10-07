@@ -1,8 +1,25 @@
-= libjson README =
+libjson - simple and efficient json parser and printer in C
+===========================================================
+
+Introduction
+------------
 
 libjson is a simple library without any dependancies to parse and pretty print
 the json format (RFC4627). The JSON format is a concise and structured data
 format.
+
+Features
+--------
+
+* interruptible parser: append data to the state how you want it.
+* No object model integrated
+* Small codebase: handcoded parser and efficient factorisation make the code smalls.
+* Fast: use efficient code and small parsing tables for maximum efficienty.
+* Full JSON support.
+* No number conversion: user convert data the way they want.
+* Secure: optional limits on nesting level, and on data size.
+* Optional comments: in YAML/python style and C style.
+* Optional user defined allocation functions.
 
 libjson parser is an interruptible handcoded state parse. the parser takes
 character or string as input. Since it's interruptible, it's up to the
@@ -12,7 +29,7 @@ a serial line, or crafted by the user.
 
 The parser doesn't create an object tree for you, but each time it comes up
 with an element in this data, it just callback to the user with the type found and
-for some type, the data associated with it. it can be compared to the SAX way of XML,
+for some type, the data associated with it. It can be compared to the SAX way of XML,
 hence it's called SAJ (Simple API for JSon).
 
 The parser doesn't convert number to any native C format, but instead callback
@@ -24,13 +41,16 @@ refuse the integer at the callback stage if the length is not appropriate.
 The parser optionally allows YAML and/or C comments to be ignored if the config
 structure is set accordingly, otherwise a JSON_ERROR_COMMENT_NOT_ALLOWED is returned.
 
+The Parser API
+--------------
+
 the parser API is really simple, totaling only 5 API calls:
 
-* json_parser_init
-* json_parser_char
-* json_parser_string
-* json_parser_is_done
-* json_parser_free
+ * json_parser_init
+ * json_parser_char
+ * json_parser_string
+ * json_parser_is_done
+ * json_parser_free
 
 json_parser_init initializes a new parser context from a parser config and
 takes a callback + userdata. This callback function is used everything the
@@ -50,12 +70,15 @@ terminated state. it involves not beeing into any structure.
 
 json_parser_free is the opposite of init, it just free the allocated structure.
 
+The Printer API
+---------------
+
 the printer API is simple too:
 
-* json_printer_init
-* json_printer_free
-* json_printer_pretty
-* json_printer_raw
+ * json_printer_init
+ * json_printer_free
+ * json_printer_pretty
+ * json_printer_raw
 
 json_printer_init initialise a printing context and takes a callback + userdata
 that will be called for every character that the printer wants to output. the
@@ -70,3 +93,9 @@ again.
 
 json_printer_pretty works like json_printer_raw but is targetted for human
 reading by appending newlines and spaces
+
+Jsonlint utility program
+------------------------
+
+jsonlint utility provided with the library to verify, or reformat json stream.
+also useful as example on how to use the library.
