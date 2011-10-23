@@ -894,9 +894,14 @@ static int dom_push(struct json_parser_dom *ctx, void *val, int is_object_struct
 
 static int dom_pop(struct json_parser_dom *ctx, void **val)
 {
-	ctx->stack_offset--;
-	*val = ctx->stack[ctx->stack_offset].val;
-	return 0;
+    if (ctx->stack_offset == 0) {
+        /* JSON_ERROR_END_OF_STRUCTURE_OUT_OF_STRUCTURE */
+        return 1;
+    } else {
+        ctx->stack_offset--;
+        *val = ctx->stack[ctx->stack_offset].val;
+    }
+    return 0;
 }
 
 int json_parser_dom_init(json_parser_dom *dom,
@@ -945,7 +950,9 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, size_t 
 		break;
 	case JSON_OBJECT_END:
 	case JSON_ARRAY_END:
-		dom_pop(ctx, &v);
+        if (dom_pop(ctx, &v) != 0) {
+            return JSON_ERROR_END_OF_STRUCTURE_OUT_OF_STRUCTURE;
+        }
 		if (ctx->stack_offset > 0) {
 			stack = &(ctx->stack[ctx->stack_offset - 1]);
 			ctx->end_structure(ctx->stack_offset, type == JSON_OBJECT_END, stack->key, stack->key_length, v, ctx->user_context);
