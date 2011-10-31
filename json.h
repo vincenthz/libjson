@@ -74,8 +74,8 @@ typedef enum
 	JSON_ERROR_UNICODE_UNEXPECTED_LOW_SURROGATE,
 	/* found a comma not in structure (array/object) */
 	JSON_ERROR_COMMA_OUT_OF_STRUCTURE,
-    /* found end of structure out of structure */
-    JSON_ERROR_END_OF_STRUCTURE_OUT_OF_STRUCTURE,
+	/* found end of structure out of structure */
+	JSON_ERROR_END_OF_STRUCTURE_OUT_OF_STRUCTURE,
 	/* callback returns error */
 	JSON_ERROR_CALLBACK,
 } json_error;
@@ -206,10 +206,10 @@ typedef struct json_parser_dom
 
 	/* callbacks */
 	json_parser_dom_begin_structure begin_structure;
-    json_parser_dom_end_structure end_structure;
+	json_parser_dom_end_structure end_structure;
 	json_parser_dom_create_data create_data;
 	json_parser_dom_append append;
-    void *user_context;
+	void *user_context;
 } json_parser_dom;
 
 /** initialize a parser dom structure with the necessary callbacks */
