@@ -430,13 +430,16 @@ they are built on top of the event based parsing API described earlier.
 == DOM parsing context
 
 a DOM parsing context hold the state of the DOM building. it also hold
-3 differents callbacks to create the JSON values in the tree.
+4 differents callbacks to create the JSON values in the tree.
 
-the first callback, create_structure, is called when a new object or array
+the first callback, begin_structure, is called when a new object or array
 is suppose to be created. the callback can choose the representation of the data, but
 need to returns a single void * to represent this new structure.
 
-the second callback, create_data, is called for each value that is not
+the second callback, end_structure, is called with the structed created by
+begin_structure. the structure object can be cleaned up if necessary.
+
+the third callback, create_data, is called for each value that is not
 an object or an array. it need returning a void * to represent this value.
 
 the last callback, append, is called each time we need to append a value to an
@@ -447,15 +450,38 @@ the following example hook into a hypothetical framework with array and object
 special method:
 
 {{{!C
-void *tree_create_structure(int nesting, int is_object)
+void *tree_begin_structure(int nesting, int is_object, void *structure, int is_object_structure, const char *key, int key_length, void *user_context)
 {
+    void *new_structure;
+    
 	if (is_object)
-		return new_object();
+		new_structure = new_object();
 	else
-		return new_array();
+		new_structure = new_array();
+        
+	if (is_object_structure) {
+		my_object_structure *object_structure = structure;
+		append_object(my_object_structure, key, key_length, new_structure);
+	} else {
+		my_array *array = structure;
+		append_array(array, new_structure);
+	}
+    
+    return new_structure;
 }
 
-void *tree_create_data(int type, const char *data, uint32_t length)
+int tree_end_structure(int nesting, int is_object, const char *key, int key_length, void *structure, void *user_context)
+{
+    if (is_object) {
+        close_object(structure);
+    } else {
+        close_array(structure);
+    }
+    return 0;
+}
+
+
+void *tree_create_data(int type, const char *data, uint32_t length, void *user_context)
 {
 	switch (type) {
 	case JSON_STRING:
@@ -469,11 +495,11 @@ void *tree_create_data(int type, const char *data, uint32_t length)
 	}
 }
 
-int tree_append(void *structure, char *key, uint32_t key_length, void *obj)
+int tree_append(void *structure, int is_object_structure, int structure_value_count, char *key, uint32_t key_length, void *obj, void *user_context)
 {
-	if (key != NULL) {
-		my_object *object = structure;
-		append_object(object, key, key_length, obj);
+	if (is_object_structure) {
+		my_object_structure *object_structure = structure;
+		append_object(my_object_structure, key, key_length, obj);
 	} else {
 		my_array *array = structure;
 		append_array(array, obj);
@@ -490,7 +516,7 @@ the following example hooks the DOM helper parser into the event parser:
 json_parser_dom helper;
 json_parser parser;
 
-json_parser_dom_init(&helper, create_structure, create_data, append);
+json_parser_dom_init(&helper, tree_begin_structure, tree_end_structure, tree_create_data, tree_append, NULL);
 json_parser_init(&parser, json_parser_dom_callback, &helper);
 }}}
 

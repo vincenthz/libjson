@@ -74,6 +74,8 @@ typedef enum
 	JSON_ERROR_UNICODE_UNEXPECTED_LOW_SURROGATE,
 	/* found a comma not in structure (array/object) */
 	JSON_ERROR_COMMA_OUT_OF_STRUCTURE,
+	/* found end of structure out of structure */
+	JSON_ERROR_END_OF_STRUCTURE_OUT_OF_STRUCTURE,
 	/* callback returns error */
 	JSON_ERROR_CALLBACK,
 } json_error;
@@ -81,8 +83,8 @@ typedef enum
 #define LIBJSON_DEFAULT_STACK_SIZE 256
 #define LIBJSON_DEFAULT_BUFFER_SIZE 4096
 
-typedef int (*json_parser_callback)(void *userdata, int type, const char *data, uint32_t length);
-typedef int (*json_printer_callback)(void *userdata, const char *s, uint32_t length);
+typedef int (*json_parser_callback)(void *userdata, int type, const char *data, size_t length);
+typedef int (*json_printer_callback)(void *userdata, const char *s, size_t length);
 
 typedef struct {
 	uint32_t buffer_initial_size;
@@ -171,24 +173,27 @@ int json_print_raw(json_printer *printer, int type, const char *data, uint32_t l
  * int, float, key, string need to be followed by a pointer to char and then a length.
  * if the length argument is -1, then the strlen function will use on the string argument.
  * the function call should always be terminated by -1 */
-int json_print_args(json_printer *, int (*f)(json_printer *, int, const char *, uint32_t), ...);
+int json_print_args(json_printer *, int (*f)(json_printer *, int, const char *, size_t), ...);
 
 /** callback from the parser_dom callback to create object and array */
-typedef void * (*json_parser_dom_create_structure)(int, int);
+typedef void * (*json_parser_dom_begin_structure)(int, int, void *, int, const char *, size_t, void *);
+
+/** callback from the parser_dom callback to create object and array */
+typedef int (*json_parser_dom_end_structure)(int, int, const char *, size_t, void *, void *);
 
 /** callback from the parser_dom callback to create data values */
-typedef void * (*json_parser_dom_create_data)(int, const char *, uint32_t);
+typedef void * (*json_parser_dom_create_data)(int, const char *, size_t, void *);
 
 /** callback from the parser helper callback to append a value to an object or array value
  * append(parent, key, key_length, val); */
-typedef int (*json_parser_dom_append)(void *, char *, uint32_t, void *);
+typedef int (*json_parser_dom_append)(void *, int, int, char *, size_t, void *, void *);
 
 /** the json_parser_dom permits to create a DOM like tree easily through the
  * use of 3 callbacks where the user can choose the representation of the JSON values */
 typedef struct json_parser_dom
 {
 	/* object stack */
-	struct stack_elem { void *val; char *key; uint32_t key_length; } *stack;
+	struct stack_elem { void *val; char *key; size_t key_length; int is_object_structure; int structure_value_count; } *stack;
 	uint32_t stack_size;
 	uint32_t stack_offset;
 
@@ -200,21 +205,25 @@ typedef struct json_parser_dom
 	void *root_structure;
 
 	/* callbacks */
-	json_parser_dom_create_structure create_structure;
+	json_parser_dom_begin_structure begin_structure;
+	json_parser_dom_end_structure end_structure;
 	json_parser_dom_create_data create_data;
 	json_parser_dom_append append;
+	void *user_context;
 } json_parser_dom;
 
 /** initialize a parser dom structure with the necessary callbacks */
 int json_parser_dom_init(json_parser_dom *helper,
-                         json_parser_dom_create_structure create_structure,
+                         json_parser_dom_begin_structure begin_structure,
+                         json_parser_dom_end_structure end_structure,
                          json_parser_dom_create_data create_data,
-                         json_parser_dom_append append);
+                         json_parser_dom_append append,
+                         void *user_context);
 /** free memory allocated by the DOM callback helper */
 int json_parser_dom_free(json_parser_dom *ctx);
 
 /** helper to parser callback that arrange parsing events into comprehensive JSON data structure */
-int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_t length);
+int json_parser_dom_callback(void *userdata, int type, const char *data, size_t length);
 
 #ifdef __cplusplus
 }

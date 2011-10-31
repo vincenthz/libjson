@@ -460,7 +460,7 @@ static int buffer_push_escape(json_parser *parser, unsigned char next)
 
 #define CHK(f) do { ret = f; if (ret) return ret; } while(0)
 
-int act_uc(json_parser *parser)
+static int act_uc(json_parser *parser)
 {
 	int ret;
 	CHK(decode_unicode_char(parser));
@@ -468,7 +468,7 @@ int act_uc(json_parser *parser)
 	return 0;
 }
 
-int act_yb(json_parser *parser)
+static int act_yb(json_parser *parser)
 {
 	if (!parser->config.allow_yaml_comments)
 		return JSON_ERROR_COMMENT_NOT_ALLOWED;
@@ -476,7 +476,7 @@ int act_yb(json_parser *parser)
 	return 0;
 }
 
-int act_cb(json_parser *parser)
+static int act_cb(json_parser *parser)
 {
 	if (!parser->config.allow_c_comments)
 		return JSON_ERROR_COMMENT_NOT_ALLOWED;
@@ -484,13 +484,13 @@ int act_cb(json_parser *parser)
 	return 0;
 }
 
-int act_ce(json_parser *parser)
+static int act_ce(json_parser *parser)
 {
 	parser->state = (parser->save_state > STATE__A) ? STATE_OK : parser->save_state;
 	return 0;
 }
 
-int act_ob(json_parser *parser)
+static int act_ob(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback(parser, JSON_OBJECT_BEGIN));
@@ -499,7 +499,7 @@ int act_ob(json_parser *parser)
 	return 0;
 }
 
-int act_oe(json_parser *parser)
+static int act_oe(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback(parser, JSON_OBJECT_END));
@@ -508,14 +508,15 @@ int act_oe(json_parser *parser)
 	return 0;
 }
 
-int act_ab(json_parser *parser)
+static int act_ab(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback(parser, JSON_ARRAY_BEGIN));
 	CHK(state_push(parser, MODE_ARRAY));
 	return 0;
 }
-int act_ae(json_parser *parser)
+
+static int act_ae(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback(parser, JSON_ARRAY_END));
@@ -523,7 +524,7 @@ int act_ae(json_parser *parser)
 	return 0;
 }
 
-int act_se(json_parser *parser)
+static int act_se(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback_withbuf(parser, (parser->expecting_key) ? JSON_KEY : JSON_STRING));
@@ -533,7 +534,7 @@ int act_se(json_parser *parser)
 	return 0;
 }
 
-int act_sp(json_parser *parser)
+static int act_sp(json_parser *parser)
 {
 	if (parser->stack_offset == 0)
 		return JSON_ERROR_COMMA_OUT_OF_STRUCTURE;
@@ -765,7 +766,7 @@ static int print_indent(json_printer *printer)
 	return 0;
 }
 
-int json_print_mode(json_printer *printer, int type, const char *data, uint32_t length, int pretty)
+static int json_print_mode(json_printer *printer, int type, const char *data, uint32_t length, int pretty)
 {
 	int enterobj = printer->enter_object;
 
@@ -832,12 +833,12 @@ int json_print_raw(json_printer *printer, int type, const char *data, uint32_t l
 
 /** json_print_args takes multiple types and pass them to the printer function */
 int json_print_args(json_printer *printer,
-                    int (*f)(json_printer *, int, const char *, uint32_t),
+                    int (*f)(json_printer *, int, const char *, size_t),
                     ...)
 {
 	va_list ap;
 	char *data;
-	uint32_t length;
+	size_t length;
 	int type, ret;
 
 	ret = 0;
@@ -858,7 +859,7 @@ int json_print_args(json_printer *printer,
 		case JSON_KEY:
 		case JSON_STRING:
 			data = va_arg(ap, char *);
-			length = va_arg(ap, uint32_t);
+			length = va_arg(ap, size_t);
 			if (length == -1)
 				length = strlen(data);
 			ret = (*f)(printer, type, data, length);
@@ -871,7 +872,7 @@ int json_print_args(json_printer *printer,
 	return ret;
 }
 
-static int dom_push(struct json_parser_dom *ctx, void *val)
+static int dom_push(struct json_parser_dom *ctx, void *val, int is_object_structure)
 {
 	if (ctx->stack_offset == ctx->stack_size) {
 		void *ptr;
@@ -885,21 +886,30 @@ static int dom_push(struct json_parser_dom *ctx, void *val)
 	ctx->stack[ctx->stack_offset].val = val;
 	ctx->stack[ctx->stack_offset].key = NULL;
 	ctx->stack[ctx->stack_offset].key_length = 0;
+	ctx->stack[ctx->stack_offset].is_object_structure = is_object_structure;
+	ctx->stack[ctx->stack_offset].structure_value_count = 0;
 	ctx->stack_offset++;
 	return 0;
 }
 
 static int dom_pop(struct json_parser_dom *ctx, void **val)
 {
-	ctx->stack_offset--;
-	*val = ctx->stack[ctx->stack_offset].val;
+	if (ctx->stack_offset == 0) {
+		/* JSON_ERROR_END_OF_STRUCTURE_OUT_OF_STRUCTURE */
+		return 1;
+	} else {
+		ctx->stack_offset--;
+		*val = ctx->stack[ctx->stack_offset].val;
+	}
 	return 0;
 }
 
 int json_parser_dom_init(json_parser_dom *dom,
-                         json_parser_dom_create_structure create_structure,
+                         json_parser_dom_begin_structure begin_structure,
+                         json_parser_dom_end_structure end_structure,
                          json_parser_dom_create_data create_data,
-                         json_parser_dom_append append)
+                         json_parser_dom_append append,
+                         void *user_context)
 {
 	memset(dom, 0, sizeof(*dom));
 	dom->stack_size = 1024;
@@ -908,8 +918,10 @@ int json_parser_dom_init(json_parser_dom *dom,
 	if (!dom->stack)
 		return JSON_ERROR_NO_MEMORY;
 	dom->append = append;
-	dom->create_structure = create_structure;
+	dom->begin_structure = begin_structure;
+	dom->end_structure = end_structure;
 	dom->create_data = create_data;
+	dom->user_context = user_context;
 	return 0;
 }
 
@@ -919,7 +931,7 @@ int json_parser_dom_free(json_parser_dom *dom)
 	return 0;
 }
 
-int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_t length)
+int json_parser_dom_callback(void *userdata, int type, const char *data, size_t length)
 {
 	struct json_parser_dom *ctx = userdata;
 	void *v;
@@ -928,20 +940,26 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
 	switch (type) {
 	case JSON_ARRAY_BEGIN:
 	case JSON_OBJECT_BEGIN:
-		v = ctx->create_structure(ctx->stack_offset, type == JSON_OBJECT_BEGIN);
+		if (ctx->stack_offset > 0) {
+			stack = &(ctx->stack[ctx->stack_offset - 1]);
+		}
+		v = ctx->begin_structure(ctx->stack_offset, type == JSON_OBJECT_BEGIN, stack?stack->val:NULL, stack?stack->is_object_structure:0, stack?stack->key:NULL, stack?stack->key_length:0, ctx->user_context);
 		if (!v)
 			return JSON_ERROR_CALLBACK;
-		dom_push(ctx, v);
+		dom_push(ctx, v, type == JSON_OBJECT_BEGIN);
 		break;
 	case JSON_OBJECT_END:
 	case JSON_ARRAY_END:
-		dom_pop(ctx, &v);
+		if (dom_pop(ctx, &v) != 0) {
+			return JSON_ERROR_END_OF_STRUCTURE_OUT_OF_STRUCTURE;
+		}
 		if (ctx->stack_offset > 0) {
 			stack = &(ctx->stack[ctx->stack_offset - 1]);
-			ctx->append(stack->val, stack->key, stack->key_length, v);
+			ctx->end_structure(ctx->stack_offset, type == JSON_OBJECT_END, stack->key, stack->key_length, v, ctx->user_context);
 			free(stack->key);
 		} else
-			ctx->root_structure = v;
+			ctx->end_structure(ctx->stack_offset, type == JSON_OBJECT_END, NULL, 0, v, ctx->user_context);
+		ctx->root_structure = v;
 		break;
 	case JSON_KEY:
 		stack = &(ctx->stack[ctx->stack_offset - 1]);
@@ -958,8 +976,12 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
 	case JSON_TRUE:
 	case JSON_FALSE:
 		stack = &(ctx->stack[ctx->stack_offset - 1]);
-		v = ctx->create_data(type, data, length);
-		ctx->append(stack->val, stack->key, stack->key_length, v);
+		v = ctx->create_data(type, data, length, ctx->user_context);
+		if (!v)
+			return JSON_ERROR_CALLBACK;
+		if (ctx->append(stack->val, stack->is_object_structure, stack->structure_value_count,stack->key, stack->key_length, v, ctx->user_context) != 0)
+			return JSON_ERROR_CALLBACK;
+		stack->structure_value_count++;
 		free(stack->key);
 		break;
 	}
