@@ -502,8 +502,8 @@ static int act_ob(json_parser *parser)
 static int act_oe(json_parser *parser)
 {
 	int ret;
-	CHK(do_callback(parser, JSON_OBJECT_END));
 	CHK(state_pop(parser, MODE_OBJECT));
+	CHK(do_callback(parser, JSON_OBJECT_END));
 	parser->expecting_key = 0;
 	return 0;
 }
@@ -519,8 +519,8 @@ static int act_ab(json_parser *parser)
 static int act_ae(json_parser *parser)
 {
 	int ret;
-	CHK(do_callback(parser, JSON_ARRAY_END));
 	CHK(state_pop(parser, MODE_ARRAY));
+	CHK(do_callback(parser, JSON_ARRAY_END));
 	return 0;
 }
 
