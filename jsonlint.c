@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Vincent Hanquez <vincent@snarc.org>
+ * Copyright (C) 2009-2011 Vincent Hanquez <vincent@snarc.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published
