@@ -542,7 +542,8 @@ int main(int argc, char **argv)
 			ret = do_tree(&config, argv[i], &root_structure);
 			if (ret)
 				exit(ret);
-			print_tree(root_structure, output);
+			if (!verify)
+				print_tree(root_structure, output);
 		} else {
 			if (format)
 				ret = do_format(&config, argv[i], output);
