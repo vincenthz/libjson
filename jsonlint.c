@@ -440,6 +440,7 @@ int usage(const char *argv0)
 	printf("\t--no-c-comments : disallow C comment (default to on)\n");
 	printf("\t--format : pretty print the json file to stdout (unless -o specified)\n");
 	printf("\t--verify : quietly verified if the json file is valid. exit 0 if valid, 1 if not\n");
+	printf("\t--benchmark : quietly iterate multiples times over valid json files\n");
 	printf("\t--max-nesting : limit the number of nesting in structure (default to no limit)\n");
 	printf("\t--max-data : limit the number of characters of data (string/int/float) (default to no limit)\n");
 	printf("\t--indent-string : set the string to use for indenting one level (default to 1 tab)\n");
@@ -450,7 +451,7 @@ int usage(const char *argv0)
 
 int main(int argc, char **argv)
 {
-	int format = 0, verify = 0, use_tree = 0;
+	int format = 0, verify = 0, use_tree = 0, benchmarks = 0;
 	int ret = 0, i;
 	json_config config;
 	char *output = "-";
@@ -469,6 +470,7 @@ int main(int argc, char **argv)
 			{ "no-c-comments", 0, 0, 0 },
 			{ "format", 0, 0, 0 },
 			{ "verify", 0, 0, 0 },
+			{ "benchmark", 1, 0, 0 },
 			{ "help", 0, 0, 0 },
 			{ "max-nesting", 1, 0, 0 },
 			{ "max-data", 1, 0, 0 },
@@ -496,6 +498,8 @@ int main(int argc, char **argv)
 				verify = 1;
 			else if (strcmp(name, "max-nesting") == 0)
 				config.max_nesting = atoi(optarg);
+			else if (strcmp(name, "benchmark") == 0)
+				benchmarks = atoi(optarg);
 			else if (strcmp(name, "max-data") == 0)
 				config.max_data = atoi(optarg);
 			else if (strcmp(name, "indent-string") == 0)
@@ -517,6 +521,20 @@ int main(int argc, char **argv)
 		output = "-";
 	if (optind >= argc)
 		usage(argv[0]);
+
+	if (benchmarks > 0) {
+		for (i = 0; i < benchmarks; i++) {
+			if (use_tree) {
+				json_val_t *root_structure;
+				ret = do_tree(&config, argv[optind], &root_structure);
+			} else {
+				ret = do_verify(&config, argv[optind]);
+			}
+			if (ret)
+				exit(ret);
+		}
+		exit(0);
+	}
 
 	for (i = optind; i < argc; i++) {
 		if (use_tree) {
