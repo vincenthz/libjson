@@ -76,6 +76,8 @@ typedef enum
 	JSON_ERROR_COMMA_OUT_OF_STRUCTURE,
 	/* callback returns error */
 	JSON_ERROR_CALLBACK,
+	/* utf8 stream is invalid */
+	JSON_ERROR_UTF8,
 } json_error;
 
 #define LIBJSON_DEFAULT_STACK_SIZE 256
@@ -105,6 +107,7 @@ typedef struct json_parser {
 	uint8_t state;
 	uint8_t save_state;
 	uint8_t expecting_key;
+	uint8_t utf8_multibyte_left;
 	uint16_t unicode_multi;
 	json_type type;
 
