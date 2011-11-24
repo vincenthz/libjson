@@ -16,6 +16,7 @@ Features
 * Small codebase: handcoded parser and efficient factorisation make the code smalls.
 * Fast: use efficient code and small parsing tables for maximum efficiency.
 * Full JSON support.
+* UTF8 validation of the input.
 * No number conversion: user convert data the way they want.
 * Secure: optional limits on nesting level, and on data size.
 * Optional comments: in YAML/python style and C style.
