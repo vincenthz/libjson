@@ -9,9 +9,9 @@ for file in `find good/*.json`
 do
 	../jsonlint --verify $file
 	if [ $? -eq 0 ]; then
-		echo "${GREEN}SUCCESS${WHITE}:  $file"
+		echo -e "${GREEN}SUCCESS${WHITE}:  $file"
 	else
-		echo "${RED}FAILED${WHITE} :  $file"
+		echo -e "${RED}FAILED${WHITE} :  $file"
 	fi
 done
 
@@ -20,8 +20,8 @@ for file in `find bad/*.json`
 do
 	../jsonlint --verify $file
 	if [ $? -eq 1 ]; then
-		echo "${GREEN}SUCCESS${WHITE}:  $file"
+		echo -e "${GREEN}SUCCESS${WHITE}:  $file"
 	else
-		echo "${RED}FAILED${WHITE} :  $file"
+		echo -e "${RED}FAILED${WHITE} :  $file"
 	fi
 done
