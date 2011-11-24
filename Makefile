@@ -9,8 +9,8 @@ INSTALL_DATA = install -m 644 -o root -g root
 COPY_PRESERVELINKS = cp -d
 INSTALL_SOLINKS = $(COPY_PRESERVELINKS)
 
-MAJOR = 0
-MINOR = 9
+MAJOR = 1
+MINOR = 0
 MICRO = 0
 
 NAME = json
