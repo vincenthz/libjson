@@ -163,6 +163,7 @@ static int do_parse(json_config *config, const char *filename)
 		return 1;
 	}
 	
+   	json_parser_free(&parser);
 	close_filename(filename, input);
 	return 0;
 }
@@ -372,6 +373,7 @@ static int do_tree(json_config *config, const char *filename, json_val_t **root_
 		*root_structure = dom.root_structure;
 
 	/* cleanup */
+	json_parser_dom_free(&dom);
 	json_parser_free(&parser);
 	close_filename(filename, input);
 	return 0;
@@ -431,6 +433,40 @@ static int print_tree(json_val_t *root_structure, char *outputfile)
 	print_tree_iter(root_structure, output);
 	close_filename(outputfile, output);
 	return 0;
+}
+
+void free_json_val(json_val_t *val)
+{
+	if (val) {
+		int i = 0;
+                switch (val->type) {      
+                case JSON_OBJECT_BEGIN: 
+                case JSON_OBJECT_END: {
+                  	for (i = 0; i < val->length; i++) {
+                          	if (val->u.object[i]->val) {
+                                        free_json_val(val->u.object[i]->val);
+                                        free(val->u.object[i]->key);
+                                        free(val->u.object[i]);
+                                }
+                        }
+                        free(val->u.object);
+                        break;
+                }
+                case JSON_ARRAY_BEGIN: {
+                case JSON_ARRAY_END: {
+                  	for (i = 0; i < val->length; i++) {
+                          	free_json_val(val->u.array[i]);
+                        }
+                        free(val->u.array);
+                        break;
+                }
+                case JSON_STRING:
+                  	free(val->u.data);
+                        break;
+                }
+
+                free(val);
+        }
 }
 
 int usage(const char *argv0)
@@ -545,6 +581,7 @@ int main(int argc, char **argv)
 				exit(ret);
 			if (!verify)
 				print_tree(root_structure, output);
+			free_json_val(root_structure);
 		} else {
 			if (format)
 				ret = do_format(&config, argv[i], output);
