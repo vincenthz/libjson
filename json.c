@@ -785,7 +785,7 @@ int json_print_init(json_printer *printer, json_printer_callback callback, void 
 	return 0;
 }
 
-/** json_print_free free a printer a context
+/** json_print_free free a printer context
  * doesn't do anything now, but in future print_init could allocate memory */
 int json_print_free(json_printer *printer)
 {
