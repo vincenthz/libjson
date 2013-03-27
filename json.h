@@ -83,6 +83,7 @@ typedef enum
 
 #define LIBJSON_DEFAULT_STACK_SIZE 256
 #define LIBJSON_DEFAULT_BUFFER_SIZE 4096
+#define LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE 20
 
 typedef int (*json_parser_callback)(void *userdata, int type, const char *data, uint32_t length);
 typedef int (*json_printer_callback)(void *userdata, const char *s, uint32_t length);
@@ -121,6 +122,12 @@ typedef struct json_parser {
 	char *buffer;
 	uint32_t buffer_size;
 	uint32_t buffer_offset;
+
+	/* parser position */
+	uint32_t line;
+	uint32_t column;
+	char buffer_prev_data[LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE];
+	uint32_t buffer_prev_data_offset;
 } json_parser;
 
 typedef struct json_printer {
@@ -156,6 +163,17 @@ int json_parser_char(json_parser *parser, unsigned char next_char);
 
 /** json_parser_is_done return 0 is the parser isn't in a finish state. !0 if it is */
 int json_parser_is_done(json_parser *parser);
+
+/** return actual parsed line */
+int json_parser_actual_line(json_parser *parser);
+
+/** return actual parser column in document */
+int json_parser_actual_column(json_parser *parser);
+
+/** return length of stored previous parsed data snippet */
+int json_parser_prev_data_len(json_parser *parser);
+
+void json_parser_prev_data_snip(json_parser *parser, char *data, int maxlen);
 
 /** json_print_init initialize a printer context. always succeed */
 int json_print_init(json_printer *printer, json_printer_callback callback, void *userdata);

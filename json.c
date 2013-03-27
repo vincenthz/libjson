@@ -408,6 +408,13 @@ static int buffer_push(json_parser *parser, unsigned char c)
 	return 0;
 }
 
+static void buffer_push_prev_data(json_parser *parser, char c)
+{
+	parser->buffer_prev_data[parser->buffer_prev_data_offset] = c;
+
+	parser->buffer_prev_data_offset = (parser->buffer_prev_data_offset + 1) % LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE;
+}
+
 static int do_callback_withbuf(json_parser *parser, int type)
 {
 	if (!parser->callback)
@@ -701,6 +708,13 @@ int json_parser_init(json_parser *parser, json_config *config,
 		free(parser->stack);
 		return JSON_ERROR_NO_MEMORY;
 	}
+
+	/* initialize parser location data + buffer which hold previous parsed data */
+	parser->line = 1;
+	parser->column = 0;
+	memset(parser->buffer_prev_data, '\0', sizeof(parser->buffer_prev_data));
+	parser->buffer_prev_data_offset = 0;
+
 	return 0;
 }
 
@@ -723,6 +737,45 @@ int json_parser_is_done(json_parser *parser)
 	return parser->stack_offset == 0 && parser->state != STATE_GO;
 }
 
+int json_parser_actual_line(json_parser *parser)
+{
+	return parser->line;
+}
+
+int json_parser_actual_column(json_parser *parser)
+{
+	return parser->column;
+}
+
+int json_parser_prev_data_len(json_parser *parser)
+{
+	return LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE + 1;
+}
+
+void json_parser_prev_data_snip(json_parser *parser, char *data, int maxlen)
+{
+	int len = LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE + 1;
+	if (maxlen < len) {
+		len = maxlen;
+	}
+
+	uint32_t offset = parser->buffer_prev_data_offset, i = 0;
+	int wrap_around = (parser->buffer_prev_data[offset] != '\0');
+
+	if (wrap_around) {
+		for (offset = parser->buffer_prev_data_offset, i = 0;
+			offset < LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE && i <= LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE; offset++, i++) {
+			data[i] = parser->buffer_prev_data[offset];
+		}
+	}
+
+	for (offset = 0; offset < parser->buffer_prev_data_offset && i <= LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE; offset++, i++) {
+		data[i] = parser->buffer_prev_data[offset];
+	}
+
+	data[i] = '\0';
+}
+
 /** json_parser_string append a string s with a specific length to the parser
  * return 0 if everything went ok, a JSON_ERROR_* otherwise.
  * the user can supplied a valid processed pointer that will
@@ -738,6 +791,18 @@ int json_parser_string(json_parser *parser, const char *s,
 	ret = 0;
 	for (i = 0; i < length; i++) {
 		unsigned char ch = s[i];
+
+		if (ch == '\n') {
+			parser->line ++;
+			parser->column = 0;
+		} else {
+			parser->column ++;
+		}
+		/* store some last processed characters to temp buffer
+		 * which can be retrieved to get snippet where
+		 * error occured
+		 */
+		buffer_push_prev_data(parser, ch);
 
 		ret = 0;
 		if (parser->utf8_multibyte_left > 0) {
