@@ -232,6 +232,10 @@ int json_parser_dom_init(json_parser_dom *helper,
                          json_parser_dom_create_structure create_structure,
                          json_parser_dom_create_data create_data,
                          json_parser_dom_append append);
+
+/** close still open arrays/objects on the stack */
+int json_parser_dom_finalize(json_parser_dom *ctx);
+
 /** free memory allocated by the DOM callback helper */
 int json_parser_dom_free(json_parser_dom *ctx);
 

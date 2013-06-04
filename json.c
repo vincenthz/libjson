@@ -1081,6 +1081,18 @@ int json_parser_dom_init(json_parser_dom *dom,
 	return 0;
 }
 
+int json_parser_dom_finalize(json_parser_dom *ctx)
+{
+	void *v;
+	struct stack_elem *stack = NULL;
+
+	/* emulate JSON_OBJECT_END/JSON_ARRAY_END on all elements on stack */
+	while (ctx->stack_offset>0) {
+		json_parser_dom_callback(ctx, JSON_OBJECT_END, NULL, 0);
+	}
+	return 0;
+}
+
 int json_parser_dom_free(json_parser_dom *dom)
 {
 	free(dom->stack);
