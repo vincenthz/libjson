@@ -47,6 +47,7 @@ typedef enum
 	JSON_TRUE,
 	JSON_FALSE,
 	JSON_NULL,
+	JSON_BSTRING,
 } json_type;
 
 typedef enum
