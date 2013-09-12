@@ -120,7 +120,7 @@ static char *character_escape[] = {
 /* define all states and actions that will be taken on each transition.
  *
  * states are defined first because of the fact they are use as index in the
- * transitions table. they usually contains either a number or a prefix _ 
+ * transitions table. they usually contains either a number or a prefix _
  * for simple state like string, object, value ...
  *
  * actions are defined starting from 0x80. state error is defined as 0xff
