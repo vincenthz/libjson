@@ -120,7 +120,7 @@ static char *character_escape[] = {
 /* define all states and actions that will be taken on each transition.
  *
  * states are defined first because of the fact they are use as index in the
- * transitions table. they usually contains either a number or a prefix _ 
+ * transitions table. they usually contains either a number or a prefix _
  * for simple state like string, object, value ...
  *
  * actions are defined starting from 0x80. state error is defined as 0xff
@@ -379,12 +379,12 @@ static int buffer_grow(json_parser *parser)
 {
 	uint32_t newsize;
 	void *ptr;
-	int max = parser->config.max_data;
+	uint32_t max = parser->config.max_data;
 
 	if (max > 0 && parser->buffer_size == max)
 		return JSON_ERROR_DATA_LIMIT;
 	newsize = parser->buffer_size * 2;
-	if (max > 0 && newsize > (uint32_t)(max))
+	if (max > 0 && newsize > max)
 		newsize = max;
 
 	ptr = parser_realloc(parser, parser->buffer, newsize * sizeof(char));
@@ -816,6 +816,7 @@ int json_print_init(json_printer *printer, json_printer_callback callback, void 
  * doesn't do anything now, but in future print_init could allocate memory */
 int json_print_free(json_printer *printer)
 {
+	memset(printer, '\0', sizeof(*printer));
 	return 0;
 }
 
