@@ -379,7 +379,7 @@ static int buffer_grow(json_parser *parser)
 {
 	uint32_t newsize;
 	void *ptr;
-	int max = parser->config.max_data;
+	uint32_t max = parser->config.max_data;
 
 	if (max > 0 && parser->buffer_size == max)
 		return JSON_ERROR_DATA_LIMIT;
