@@ -384,7 +384,7 @@ static int buffer_grow(json_parser *parser)
 	if (max > 0 && parser->buffer_size == max)
 		return JSON_ERROR_DATA_LIMIT;
 	newsize = parser->buffer_size * 2;
-	if (max > 0 && newsize > (uint32_t)(max))
+	if (max > 0 && newsize > max)
 		newsize = max;
 
 	ptr = parser_realloc(parser, parser->buffer, newsize * sizeof(char));
