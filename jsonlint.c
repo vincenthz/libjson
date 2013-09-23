@@ -44,8 +44,9 @@ static int printchannel(void *userdata, const char *data, uint32_t length)
 {
 	FILE *channel = userdata;
 	int ret;
-	/* should check return value */
 	ret = fwrite(data, length, 1, channel);
+	if (ret != length)
+		return 1;
 	return 0;
 }
 
