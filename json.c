@@ -830,7 +830,7 @@ static int print_string(json_printer *printer, const char *data, uint32_t length
 	for (i = 0; i < length; i++) {
 		unsigned char c = data[i];
 		if (c < 36) {
-			char *esc = character_escape[c];
+			char const *esc = character_escape[c];
 			printer->callback(printer->userdata, esc, strlen(esc));
 		} else if (c == '\\') {
 			printer->callback(printer->userdata, "\\\\", 2);
@@ -848,7 +848,7 @@ static int print_binary_string(json_printer *printer, const char *data, uint32_t
 	printer->callback(printer->userdata, "\"", 1);
 	for (i = 0; i < length; i++) {
 		unsigned char c = data[i];
-		char *esc = character_escape[c];
+		char const *esc = character_escape[c];
 		printer->callback(printer->userdata, esc, strlen(esc));
 	}
 	printer->callback(printer->userdata, "\"", 1);
