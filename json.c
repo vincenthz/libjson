@@ -1005,7 +1005,7 @@ int json_print_args(json_printer *printer,
 {
 	va_list ap;
 	char *data;
-	uint32_t length;
+	int32_t length;
 	int type, ret;
 
 	ret = 0;
