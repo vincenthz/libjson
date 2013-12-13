@@ -759,11 +759,12 @@ void json_parser_prev_data_snip(json_parser *parser, char *data, int maxlen)
 		len = maxlen;
 	}
 
-	uint32_t offset = parser->buffer_prev_data_offset, i = 0;
+	uint32_t offset = parser->buffer_prev_data_offset;
 	int wrap_around = (parser->buffer_prev_data[offset] != '\0');
 
+	uint32_t i = 0;
 	if (wrap_around) {
-		for (offset = parser->buffer_prev_data_offset, i = 0;
+		for (offset = parser->buffer_prev_data_offset;
 			offset < LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE && i <= LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE; offset++, i++) {
 			data[i] = parser->buffer_prev_data[offset];
 		}
@@ -771,6 +772,14 @@ void json_parser_prev_data_snip(json_parser *parser, char *data, int maxlen)
 
 	for (offset = 0; offset < parser->buffer_prev_data_offset && i <= LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE; offset++, i++) {
 		data[i] = parser->buffer_prev_data[offset];
+	}
+
+	// Append next characters if number of previously parsed chars
+	// is lesser than expected size of snipped data
+	while (i < LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE
+			&& parser->buffer_first_data_lenght > i) {
+		data[i] = parser->buffer_first_data[i];
+		i++;
 	}
 
 	data[i] = '\0';
@@ -787,6 +796,17 @@ int json_parser_string(json_parser *parser, const char *s,
 	int next_class, next_state;
 	int buffer_policy;
 	uint32_t i;
+
+	if (parser->buffer_first_data_lenght < LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE) {
+		int addLen =
+			(length <= (LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE - parser->buffer_first_data_lenght))
+				? length : (LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE - parser->buffer_first_data_lenght);
+
+		memcpy(parser->buffer_first_data + parser->buffer_first_data_lenght,
+				s,
+				addLen);
+		parser->buffer_first_data_lenght += addLen;
+	}
 
 	ret = 0;
 	for (i = 0; i < length; i++) {

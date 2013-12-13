@@ -128,6 +128,8 @@ typedef struct json_parser {
 	uint32_t column;
 	char buffer_prev_data[LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE];
 	uint32_t buffer_prev_data_offset;
+	char buffer_first_data[LIBJSON_DEFAULT_BUFFER_PREV_DATA_SIZE];
+	uint32_t buffer_first_data_lenght;
 } json_parser;
 
 typedef struct json_printer {
