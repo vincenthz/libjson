@@ -4,8 +4,8 @@ CFLAGS ?= -Wall -Os -fPIC
 LDFLAGS = -L.
 SHLIB_CFLAGS = -shared
 
-INSTALL_EXEC = install -m 755 -o root -g root
-INSTALL_DATA = install -m 644 -o root -g root
+INSTALL_EXEC = install -m 755
+INSTALL_DATA = install -m 644
 COPY_PRESERVELINKS = cp -d
 INSTALL_SOLINKS = $(COPY_PRESERVELINKS)
 

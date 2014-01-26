@@ -82,7 +82,7 @@ static uint8_t character_class[128] = {
 };
 
 /* only the first 36 ascii characters need an escape */
-static char *character_escape[] = {
+static char const *character_escape[] = {
 	"\\u0000", "\\u0001", "\\u0002", "\\u0003", "\\u0004", "\\u0005", "\\u0006", "\\u0007", /*  0-7  */
 	"\\b"    ,     "\\t",     "\\n", "\\u000b",     "\\f",     "\\r", "\\u000e", "\\u000f", /*  8-f  */
 	"\\u0010", "\\u0011", "\\u0012", "\\u0013", "\\u0014", "\\u0015", "\\u0016", "\\u0017", /* 10-17 */
@@ -830,7 +830,7 @@ static int print_string(json_printer *printer, const char *data, uint32_t length
 	for (i = 0; i < length; i++) {
 		unsigned char c = data[i];
 		if (c < 36) {
-			char *esc = character_escape[c];
+			char const *esc = character_escape[c];
 			printer->callback(printer->userdata, esc, strlen(esc));
 		} else if (c == '\\') {
 			printer->callback(printer->userdata, "\\\\", 2);
@@ -848,7 +848,7 @@ static int print_binary_string(json_printer *printer, const char *data, uint32_t
 	printer->callback(printer->userdata, "\"", 1);
 	for (i = 0; i < length; i++) {
 		unsigned char c = data[i];
-		char *esc = character_escape[c];
+		char const *esc = character_escape[c];
 		printer->callback(printer->userdata, esc, strlen(esc));
 	}
 	printer->callback(printer->userdata, "\"", 1);
