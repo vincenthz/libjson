@@ -517,8 +517,6 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
-	if (config.max_nesting < 0)
-		config.max_nesting = 0;
 	if (!output)
 		output = "-";
 	if (optind >= argc)
