@@ -25,6 +25,14 @@ PREFIX ?= /usr
 DESTDIR ?=
 INSTALLDIR ?= $(DESTDIR)$(PREFIX)
 
+uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
+
+ifeq ($(uname_S),Darwin)
+SONAME=
+else
+SONAME=-Wl,-soname -Wl,lib$(NAME).so.$(MAJOR).$(MINOR).$(MICRO)
+endif
+
 TARGETS = $(A_TARGETS) $(SO_FILE) $(SO_LINKS) $(BIN_TARGETS) $(PC_TARGET)
 
 all: $(TARGETS)
@@ -42,7 +50,7 @@ lib$(NAME).so.$(MAJOR).$(MINOR): lib$(NAME).so.$(MAJOR).$(MINOR).$(MICRO)
 	ln -sf $< $@
 
 lib$(NAME).so.$(MAJOR).$(MINOR).$(MICRO): $(NAME).o
-	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-soname -Wl,lib$(NAME).so.$(MAJOR).$(MINOR).$(MICRO) $(SHLIB_CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) $(LDFLAGS) $(SONAME) $(SHLIB_CFLAGS) -o $@ $^
 
 $(NAME)lint: $(NAME)lint.o $(NAME).o
 	$(CC) $(CFLAGS) -o $@ $+
