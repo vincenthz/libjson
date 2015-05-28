@@ -291,13 +291,13 @@ in 3 categories:
 * security.
 * optional extensions.
 
-##= User defined memory function
+### User defined memory function
 
 The library user can choose to redefine its own allocation functions (realloc
 and calloc), in this case the parser will allocate using those functions. this
 is controlled by `user_calloc` and `user_realloc`.
 
-##= Security
+### Security
 
 there's 2 security settings available: `max_nesting` and `max_data`.
 
@@ -313,7 +313,7 @@ structures, you need 4K of memory).
 For security purpose, if the parser is directly connected to a network stream,
 setting those variables, is strongly recommended.
 
-##= Comments
+### Comments
 
 You can enable C comments and enable YAML comments arbitrarly from each other.
 
