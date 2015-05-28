@@ -119,7 +119,7 @@ every functions returns a int that is either 0 for success, or a `json_error` if
 
 ## Callbacks object
 
-all callback takes an optional void * to be able to pass a pointer to anything to the callback function.
+all callback takes an optional `void *` to be able to pass a pointer to anything to the callback function.
 
 ## No assumption
 
@@ -144,7 +144,7 @@ The following example initializes a new parser context:
 
 * a NULL config which means the default parser config.
 * `my_callback` a function that will be called each time there's a JSON event.
-* `my_callback_data` a void * value that will be passed to `my_callback` every times it's called.
+* `my_callback_data` a `void *` value that will be passed to `my_callback` every times it's called.
 
 ```C
 json_parser parser;
@@ -342,8 +342,8 @@ There's also some state about indentation level and pretty printing state.
 The following example initializes a new printing context:
 
 * a NULL config which means the default parser config.
-* my_callback a function that will be called each time there's a JSON event.
-* my_callback_data a void * value that will be passed to my_callback every times it's called.
+* `my_callback` a function that will be called each time there's a JSON event.
+* `my_callback_data` a `void *` value that will be passed to `my_callback` every times it's called.
 
 ```C
 json_printer print;
