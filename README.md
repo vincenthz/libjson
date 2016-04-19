@@ -5,7 +5,7 @@ Introduction
 ------------
 
 libjson is a simple library without any dependancies to parse and pretty print
-the json format (RFC4627). The JSON format is a concise and structured data
+the JSON format ([RFC 4627](https://www.ietf.org/rfc/rfc4627.txt)). The JSON format is a concise and structured data
 format.
 
 Features
