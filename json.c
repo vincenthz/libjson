@@ -326,7 +326,7 @@ static const uint8_t utf8_continuation_table[256] =
 #define MODE_ARRAY 0
 #define MODE_OBJECT 1
 
-#define CHK(f) do { ret = f; if (ret) return ret; } while(0)
+#define CHK(f) do { int ret = f; if (ret) return ret; } while(0)
 
 static inline void *memory_realloc(void *(*realloc_fct)(void *, size_t), void *ptr, size_t size)
 {
@@ -360,9 +360,7 @@ static int state_grow(json_parser *parser)
 static int state_push(json_parser *parser, int mode)
 {
 	if (parser->stack_offset >= parser->stack_size) {
-		int ret = state_grow(parser);
-		if (ret)
-			return ret;
+		CHK(state_grow(parser));
 	}
 	parser->stack[parser->stack_offset++] = mode;
 	return 0;
@@ -402,12 +400,8 @@ static int buffer_grow(json_parser *parser)
 
 static int buffer_push(json_parser *parser, unsigned char c)
 {
-	int ret;
-
 	if (parser->buffer_offset >= parser->buffer_size) {
-		ret = buffer_grow(parser);
-		if (ret)
-			return ret;
+		CHK(buffer_grow(parser));
 	}
 	parser->buffer[parser->buffer_offset++] = c;
 	return 0;
@@ -417,7 +411,6 @@ static int do_callback_withbuf(json_parser *parser, int type)
 {
 	if (parser->callback) {
 		parser->buffer[parser->buffer_offset] = '\0';
-		int ret;
 		CHK((*parser->callback)(parser->userdata, type, parser->buffer, parser->buffer_offset));
 	}
 	parser->buffer_offset = 0;
@@ -518,7 +511,6 @@ static int buffer_push_escape(json_parser *parser, unsigned char next)
 
 static int act_uc(json_parser *parser)
 {
-	int ret;
 	CHK(decode_unicode_char(parser));
 	parser->state = (parser->unicode_multi) ? STATE_D1 : STATE__S;
 	return 0;
@@ -548,7 +540,6 @@ static int act_ce(json_parser *parser)
 
 static int act_ob(json_parser *parser)
 {
-	int ret;
 	CHK(do_callback(parser, JSON_OBJECT_BEGIN));
 	CHK(state_push(parser, MODE_OBJECT));
 	parser->expecting_key = 1;
@@ -557,7 +548,6 @@ static int act_ob(json_parser *parser)
 
 static int act_oe(json_parser *parser)
 {
-	int ret;
 	CHK(state_pop(parser, MODE_OBJECT));
 	CHK(do_callback(parser, JSON_OBJECT_END));
 	parser->expecting_key = 0;
@@ -566,7 +556,6 @@ static int act_oe(json_parser *parser)
 
 static int act_ab(json_parser *parser)
 {
-	int ret;
 	CHK(do_callback(parser, JSON_ARRAY_BEGIN));
 	CHK(state_push(parser, MODE_ARRAY));
 	return 0;
@@ -574,7 +563,6 @@ static int act_ab(json_parser *parser)
 
 static int act_ae(json_parser *parser)
 {
-	int ret;
 	CHK(state_pop(parser, MODE_ARRAY));
 	CHK(do_callback(parser, JSON_ARRAY_END));
 	return 0;
@@ -582,7 +570,6 @@ static int act_ae(json_parser *parser)
 
 static int act_se(json_parser *parser)
 {
-	int ret;
 	CHK(do_callback_withbuf(parser, (parser->expecting_key) ? JSON_KEY : JSON_STRING));
 	parser->state = (parser->expecting_key) ? STATE_CO : STATE_OK;
 	parser->expecting_key = 0;
@@ -603,21 +590,18 @@ static int act_sp(json_parser *parser)
 
 static int act_tr(json_parser *parser)
 {
-	int ret;
 	CHK(do_callback(parser, JSON_TRUE));
 	return 0;
 }
 
 static int act_fa(json_parser *parser)
 {
-	int ret;
 	CHK(do_callback(parser, JSON_FALSE));
 	return 0;
 }
 
 static int act_nu(json_parser *parser)
 {
-	int ret;
 	CHK(do_callback(parser, JSON_NULL));
 	return 0;
 }
@@ -656,8 +640,6 @@ static struct action_descr actions_map[] = {
 static int do_action(json_parser *parser, int next_state)
 {
 	struct action_descr *descr = &actions_map[next_state & ~0x80];
-
-	int ret;
 
 	if (descr->dobuffer && parser->buffer_offset > 0 && parser->type != JSON_NONE)
 		CHK(do_callback_withbuf(parser, parser->type));
@@ -747,8 +729,9 @@ int json_parser_string(json_parser *parser, const char *s,
 	uint32_t i;
 
 	ret = 0;
+	unsigned char ch;
 	for (i = 0; i < length; i++) {
-		unsigned char ch = s[i];
+		ch = s[i];
 
 		ret = 0;
 		if (parser->utf8_multibyte_left > 0) {
