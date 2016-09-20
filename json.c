@@ -387,11 +387,13 @@ static int buffer_grow(json_parser *parser)
 	if (max > 0 && newsize > max)
 		newsize = max;
 
+	newsize++; // Add 1 byte to take into account the string terminator
 	ptr = parser_realloc(parser, parser->buffer, newsize * sizeof(char));
 	if (!ptr)
 		return JSON_ERROR_NO_MEMORY;
 	parser->buffer = ptr;
-	parser->buffer_size = newsize;
+	// Effective usable size of the buffer without considering the byte reserved for the terminator
+	parser->buffer_size = newsize - 1;
 	return 0;
 }
 
@@ -399,7 +401,7 @@ static int buffer_push(json_parser *parser, unsigned char c)
 {
 	int ret;
 
-	if (parser->buffer_offset + 1 >= parser->buffer_size) {
+	if (parser->buffer_offset >= parser->buffer_size) {
 		ret = buffer_grow(parser);
 		if (ret)
 			return ret;
@@ -696,7 +698,8 @@ int json_parser_init(json_parser *parser, json_config *config,
 	if (parser->config.max_data > 0 && parser->buffer_size > parser->config.max_data)
 		parser->buffer_size = parser->config.max_data;
 
-	parser->buffer = parser_calloc(parser, parser->buffer_size, sizeof(char));
+	// Add 1 byte to take into account the string terminator
+	parser->buffer = parser_calloc(parser, parser->buffer_size + 1, sizeof(char));
 	if (!parser->buffer) {
 		free(parser->stack);
 		return JSON_ERROR_NO_MEMORY;
