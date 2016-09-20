@@ -169,6 +169,7 @@ enum actions {
 	STATE_ZX, /* integer detected by zero */
 	STATE_IX, /* integer detected by 1-9 */
 	STATE_UC, /* Unicode character read */
+	STATE_PV, /* primitive value parsed */
 };
 
 /* error state */
@@ -204,13 +205,13 @@ static const uint8_t state_transition_table[NR_STATES][NR_CLASSES] = {
 /*U4*/ PT_(__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,UC,UC,UC,UC,UC,UC,UC,UC,__,__,__,__,__,__,UC,UC,__,__,__),
 /****************************************************************************************************************/
 /*M0*/ PT_(__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,Z0,I0,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__),
-/*Z0*/ PT_(OK,OK,OK,__,OE,__,AE,__,SP,__,__,CB,__,__,DF,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,YB),
-/*I0*/ PT_(OK,OK,OK,__,OE,__,AE,__,SP,__,__,CB,__,__,DF,I0,I0,__,__,__,__,DE,__,__,__,__,__,__,__,__,DE,__,__,YB),
+/*Z0*/ PT_(PV,PV,PV,__,OE,__,AE,__,SP,__,__,CB,__,__,DF,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,YB),
+/*I0*/ PT_(PV,PV,PV,__,OE,__,AE,__,SP,__,__,CB,__,__,DF,I0,I0,__,__,__,__,DE,__,__,__,__,__,__,__,__,DE,__,__,YB),
 /*R1*/ PT_(__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,R2,R2,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__),
-/*R2*/ PT_(OK,OK,OK,__,OE,__,AE,__,SP,__,__,CB,__,__,__,R2,R2,__,__,__,__,X1,__,__,__,__,__,__,__,__,X1,__,__,YB),
+/*R2*/ PT_(PV,PV,PV,__,OE,__,AE,__,SP,__,__,CB,__,__,__,R2,R2,__,__,__,__,X1,__,__,__,__,__,__,__,__,X1,__,__,YB),
 /*X1*/ PT_(__,__,__,__,__,__,__,__,__,__,__,__,X2,X2,__,X3,X3,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__),
 /*X2*/ PT_(__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,X3,X3,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__),
-/*X3*/ PT_(OK,OK,OK,__,OE,__,AE,__,SP,__,__,__,__,__,__,X3,X3,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__),
+/*X3*/ PT_(PV,PV,PV,__,OE,__,AE,__,SP,__,__,__,__,__,__,X3,X3,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__),
 /****************************************************************************************************************/
 /*T1*/ PT_(__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,T2,__,__,__,__,__,__,__,__),
 /*T2*/ PT_(__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,T3,__,__,__,__,__),
@@ -325,6 +326,8 @@ static const uint8_t utf8_continuation_table[256] =
 #define MODE_ARRAY 0
 #define MODE_OBJECT 1
 
+#define CHK(f) do { ret = f; if (ret) return ret; } while(0)
+
 static inline void *memory_realloc(void *(*realloc_fct)(void *, size_t), void *ptr, size_t size)
 {
 	return (realloc_fct) ? realloc_fct(ptr, size) : realloc(ptr, size);
@@ -412,10 +415,13 @@ static int buffer_push(json_parser *parser, unsigned char c)
 
 static int do_callback_withbuf(json_parser *parser, int type)
 {
-	if (!parser->callback)
-		return 0;
-	parser->buffer[parser->buffer_offset] = '\0';
-	return (*parser->callback)(parser->userdata, type, parser->buffer, parser->buffer_offset);
+	if (parser->callback) {
+		parser->buffer[parser->buffer_offset] = '\0';
+		int ret;
+		CHK((*parser->callback)(parser->userdata, type, parser->buffer, parser->buffer_offset));
+	}
+	parser->buffer_offset = 0;
+	return 0;
 }
 
 static int do_callback(json_parser *parser, int type)
@@ -423,25 +429,6 @@ static int do_callback(json_parser *parser, int type)
 	if (!parser->callback)
 		return 0;
 	return (*parser->callback)(parser->userdata, type, NULL, 0);
-}
-
-static int do_buffer(json_parser *parser)
-{
-	int ret = 0;
-
-	switch (parser->type) {
-	case JSON_KEY: case JSON_STRING:
-	case JSON_FLOAT: case JSON_INT:
-	case JSON_NULL: case JSON_TRUE: case JSON_FALSE:
-		ret = do_callback_withbuf(parser, parser->type);
-		if (ret)
-			return ret;
-		break;
-	default:
-		break;
-	}
-	parser->buffer_offset = 0;
-	return ret;
 }
 
 static const uint8_t hextable[] = {
@@ -529,8 +516,6 @@ static int buffer_push_escape(json_parser *parser, unsigned char next)
 	return buffer_push(parser, c);
 }
 
-#define CHK(f) do { ret = f; if (ret) return ret; } while(0)
-
 static int act_uc(json_parser *parser)
 {
 	int ret;
@@ -599,7 +584,6 @@ static int act_se(json_parser *parser)
 {
 	int ret;
 	CHK(do_callback_withbuf(parser, (parser->expecting_key) ? JSON_KEY : JSON_STRING));
-	parser->buffer_offset = 0;
 	parser->state = (parser->expecting_key) ? STATE_CO : STATE_OK;
 	parser->expecting_key = 0;
 	return 0;
@@ -614,6 +598,27 @@ static int act_sp(json_parser *parser)
 		parser->state = STATE__K;
 	} else
 		parser->state = STATE__V;
+	return 0;
+}
+
+static int act_tr(json_parser *parser)
+{
+	int ret;
+	CHK(do_callback(parser, JSON_TRUE));
+	return 0;
+}
+
+static int act_fa(json_parser *parser)
+{
+	int ret;
+	CHK(do_callback(parser, JSON_FALSE));
+	return 0;
+}
+
+static int act_nu(json_parser *parser)
+{
+	int ret;
+	CHK(do_callback(parser, JSON_NULL));
 	return 0;
 }
 
@@ -635,9 +640,9 @@ static struct action_descr actions_map[] = {
 	{ act_cb, JSON_NONE,  STATE_C1, 1 }, /* CB */
 	{ act_yb, JSON_NONE,  STATE_Y1, 1 }, /* YB */
 	{ act_ce, JSON_NONE,  0,        0 }, /* CE */
-	{ NULL,   JSON_FALSE, STATE_OK, 0 }, /* FA */
-	{ NULL,   JSON_TRUE,  STATE_OK, 0 }, /* TR */
-	{ NULL,   JSON_NULL,  STATE_OK, 0 }, /* NU */
+	{ act_fa, JSON_NONE,  STATE_OK, 0 }, /* FA */
+	{ act_tr, JSON_NONE,  STATE_OK, 0 }, /* TR */
+	{ act_nu, JSON_NONE,  STATE_OK, 0 }, /* NU */
 	{ NULL,   JSON_FLOAT, STATE_X1, 0 }, /* DE */
 	{ NULL,   JSON_FLOAT, STATE_R1, 0 }, /* DF */
 	{ act_se, JSON_NONE,  0,        0 }, /* SE */
@@ -645,18 +650,21 @@ static struct action_descr actions_map[] = {
 	{ NULL,   JSON_INT,   STATE_Z0, 0 }, /* ZX */
 	{ NULL,   JSON_INT,   STATE_I0, 0 }, /* IX */
 	{ act_uc, JSON_NONE,  0,        0 }, /* UC */
+	{ NULL,   JSON_NONE,  STATE_OK, 1 }, /* PV */
 };
 
 static int do_action(json_parser *parser, int next_state)
 {
 	struct action_descr *descr = &actions_map[next_state & ~0x80];
 
-	if (descr->call) {
-		int ret;
-		if (descr->dobuffer)
-			CHK(do_buffer(parser));
+	int ret;
+
+	if (descr->dobuffer && parser->buffer_offset > 0 && parser->type != JSON_NONE)
+		CHK(do_callback_withbuf(parser, parser->type));
+
+	if (descr->call)
 		CHK((descr->call)(parser));
-	}
+
 	if (descr->state)
 		parser->state = descr->state;
 	parser->type = descr->type;

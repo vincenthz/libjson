@@ -43,6 +43,8 @@ const string COMPLETE_DOC_COMPRESSED = RESOURCES_PATH + "complete_doc_compressed
 const string COMPLETE_DOC_SPLIT = RESOURCES_PATH + "complete_doc_split.json";
 const string DATA_LIMIT_CHUNKS = RESOURCES_PATH + "data_limit_chunks.json";
 const string NESTING_LIMIT_CHUNKS = RESOURCES_PATH + "nesting_limit_chunks.json";
+const string CHUNKS_DOC_LAST_VALUE = RESOURCES_PATH + "chunks_last_value.json";
+const string CHUNKS_DOC_LAST_VALUE_EVENTS = RESOURCES_PATH + "chunks_last_value.events";
 
 /**
  * Wrapper of the json_parser library that handles callbacks internally and provide a
@@ -163,21 +165,29 @@ string ReadContentOfFile(const string file) {
 }
 
 /**
- * Reads a file line by line and parses each line as a string into a queue
+ * Reads a file chunk by chunk based on the provided separator and parses each
+ * chunk as a string into a queue
  */
-queue<string> ReadFileLineByLine(const string file) {
+queue<string> ReadFileChunkByChunk(const string file, const char separator) {
     ifstream input_stream(file.c_str());
     if(input_stream.fail())
         throw "Error opening file " + file;
 
     queue<string> queue;
     string line;
-    while (getline(input_stream, line))
+    while (getline(input_stream, line, separator))
     {
         queue.push(line);
     }
 
     return queue;
+}
+
+/**
+ * Reads a file line by line and parses each line as a string into a queue
+ */
+queue<string> ReadFileLineByLine(const string file) {
+    return ReadFileChunkByChunk(file, '\n');
 }
 
 /**
@@ -271,9 +281,9 @@ SCENARIO("an entirely buffered JSON document needs to be parsed") {
 SCENARIO("a partially buffered JSON document needs to be parsed") {
 
     GIVEN("a parser with a default configuration") {
-        JSONParserEventsCollector parser;
-
         WHEN("a chunked JSON document is parsed by the library") {
+            JSONParserEventsCollector parser;
+
             queue<string> document = ReadFileLineByLine(COMPLETE_DOC_SPLIT);
             string chunk;
             while (!document.empty()){
@@ -292,6 +302,27 @@ SCENARIO("a partially buffered JSON document needs to be parsed") {
                     LoadEventsQueueFromFile(COMPLETE_DOC_EVENTS);
 
                 RequireEqualEventsQueues(events_queue, expected_events_queue);
+            }
+        }
+
+        WHEN("the parser is fed with a chunk ending with a primitive value") {
+            queue<string> chunks = ReadFileChunkByChunk(CHUNKS_DOC_LAST_VALUE, '#');
+            queue<pair<int, string> > expected_last_values_events_queue =
+                LoadEventsQueueFromFile(CHUNKS_DOC_LAST_VALUE_EVENTS);
+
+            THEN("the primitive value is correctly parsed") {
+                while (!chunks.empty()) {
+                    JSONParserEventsCollector parser;
+                    ParseJSONDocument(parser, chunks.front());
+                    INFO("Parsed chunks: " + chunks.front());
+                    REQUIRE(parser.GetGeneratedEventsQueue().back().first ==
+                            expected_last_values_events_queue.front().first);
+                    REQUIRE(parser.GetGeneratedEventsQueue().back().second ==
+                            expected_last_values_events_queue.front().second);
+
+                    chunks.pop();
+                    expected_last_values_events_queue.pop();
+                }
             }
         }
     }
