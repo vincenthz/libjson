@@ -1,0 +1,8 @@
+{
+    "Escaped" : "\"\\\/\t\"\\\/\t",
+    "Integer" : -123456789,
+    "Float" : 0.123456,
+    "String" : "View from 15th Floor",
+    "EscapedUnicode" : "\u1234\u543F\uAAAA\uD83E\uDD80",
+    "Bool" : false
+}

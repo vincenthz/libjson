@@ -35,7 +35,7 @@ typedef unsigned __int32 uint32_t;
 
 typedef enum 
 {
-	JSON_NONE,
+	JSON_NONE = 1,
 	JSON_ARRAY_BEGIN,
 	JSON_OBJECT_BEGIN,
 	JSON_ARRAY_END,
@@ -48,6 +48,9 @@ typedef enum
 	JSON_FALSE,
 	JSON_NULL,
 	JSON_BSTRING,
+	JSON_PARTIAL_KEY,
+	JSON_PARTIAL_VALUE,
+	JSON_PARTIAL_STRING,
 } json_type;
 
 typedef enum
@@ -79,10 +82,21 @@ typedef enum
 	JSON_ERROR_CALLBACK,
 	/* utf8 stream is invalid */
 	JSON_ERROR_UTF8,
+	/* internal error */
+	JSON_ERROR,
 } json_error;
+
+typedef enum
+{
+	DEFAULT,
+	/* Enable buffer flushing at the end of provided JSON chunk.
+	 * A JSON_PARTIAL_DATA callback will be triggered. */
+	PARTIAL_DATA_CALLBACKS,
+} json_parsing_mode;
 
 #define LIBJSON_DEFAULT_STACK_SIZE 256
 #define LIBJSON_DEFAULT_BUFFER_SIZE 4096
+#define ESCAPE_BUFFER_SIZE 6
 
 typedef int (*json_parser_callback)(void *userdata, int type, const char *data, uint32_t length);
 typedef int (*json_printer_callback)(void *userdata, const char *s, uint32_t length);
@@ -93,6 +107,7 @@ typedef struct {
 	uint32_t max_data;
 	int allow_c_comments;
 	int allow_yaml_comments;
+	json_parsing_mode mode;
 	void * (*user_calloc)(size_t nmemb, size_t size);
 	void * (*user_realloc)(void *ptr, size_t size);
 } json_config;
@@ -117,10 +132,12 @@ typedef struct json_parser {
 	uint32_t stack_offset;
 	uint32_t stack_size;
 
-	/* parse buffer */
+	/* parse buffers */
 	char *buffer;
 	uint32_t buffer_size;
 	uint32_t buffer_offset;
+	char escape_buffer[ESCAPE_BUFFER_SIZE];
+	uint32_t escape_buffer_offset;
 } json_parser;
 
 typedef struct json_printer {

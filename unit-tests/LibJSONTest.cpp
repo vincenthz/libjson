@@ -29,6 +29,9 @@ const map<string, json_type> string_to_type_map() {
     map.insert(pair<string, json_type>("JSON_FALSE", JSON_FALSE));
     map.insert(pair<string, json_type>("JSON_NULL", JSON_NULL));
     map.insert(pair<string, json_type>("JSON_BSTRING", JSON_BSTRING));
+    map.insert(pair<string, json_type>("JSON_PARTIAL_KEY", JSON_PARTIAL_KEY));
+    map.insert(pair<string, json_type>("JSON_PARTIAL_VALUE", JSON_PARTIAL_VALUE));
+    map.insert(pair<string, json_type>("JSON_PARTIAL_STRING", JSON_PARTIAL_STRING));
 
     return map;
 }
@@ -40,11 +43,15 @@ const string SIMPLE_DOC_EVENTS = RESOURCES_PATH + "simple_doc.events";
 const string COMPLETE_DOC = RESOURCES_PATH + "complete_doc.json";
 const string COMPLETE_DOC_EVENTS = RESOURCES_PATH + "complete_doc.events";
 const string COMPLETE_DOC_COMPRESSED = RESOURCES_PATH + "complete_doc_compressed.json";
+const string COMPLETE_DOC_PARTIAL_MODE_EVENTS = RESOURCES_PATH + "complete_doc_partial_mode.events";
 const string COMPLETE_DOC_SPLIT = RESOURCES_PATH + "complete_doc_split.json";
+const string COMPLETE_DOC_SPLIT_EVENTS = RESOURCES_PATH + "complete_doc_split.events";
 const string DATA_LIMIT_CHUNKS = RESOURCES_PATH + "data_limit_chunks.json";
 const string NESTING_LIMIT_CHUNKS = RESOURCES_PATH + "nesting_limit_chunks.json";
 const string CHUNKS_DOC_LAST_VALUE = RESOURCES_PATH + "chunks_last_value.json";
 const string CHUNKS_DOC_LAST_VALUE_EVENTS = RESOURCES_PATH + "chunks_last_value.events";
+const string DATA_LIMIT_DOC = RESOURCES_PATH + "data_limit_doc.json";
+const string DATA_LIMIT_DOC_EVENTS = RESOURCES_PATH + "data_limit_doc.events";
 
 /**
  * Wrapper of the json_parser library that handles callbacks internally and provide a
@@ -216,10 +223,12 @@ void RequireEqualEventsQueues(queue<pair<int, string> >& events_queue,
                               queue<pair<int, string> >& expected_events_queue) {
     pair<int, string> parsed, expected;
 
+    int line = 1;
     while (!events_queue.empty() && !expected_events_queue.empty()) {
         parsed = events_queue.front();
         expected = expected_events_queue.front();
 
+        INFO("Check line: " << line++);
         INFO("Parsed: " << parsed.first << ":" << parsed.second);
         INFO("Expected: " << expected.first << ":" << expected.second);
         REQUIRE(parsed.first == expected.first);
@@ -237,6 +246,112 @@ inline void ParseJSONDocument(JSONParserEventsCollector& parser,
     INFO("Parsed json document:\n" << document);
     REQUIRE(parser.ProcessString(document) == 0);
     REQUIRE(parser.GetProcessedBytes() == document.length());
+}
+
+
+void ParseChunckedDocument(JSONParserEventsCollector& parser,
+                           queue<string> document) {
+        string chunk;
+        while (!document.empty()){
+            chunk = document.front();
+            ParseJSONDocument(parser, chunk);
+            // In case partial data callbacks are enabled check that no internal buffer is kept
+            if (parser.GetParserInternalStatus().config.mode == PARTIAL_DATA_CALLBACKS) {
+                    REQUIRE(parser.GetParserInternalStatus().buffer_offset == 0);
+            }
+
+            document.pop();
+            if (!document.empty())
+                REQUIRE(!parser.IsFinalState());
+        }
+        REQUIRE(parser.IsFinalState());
+}
+
+void RequireEscapedCharactersAreCorrectlyTransformed(JSONParserEventsCollector& parser) {
+    WHEN("UNICODE escaped sequences are parsed") {
+        const string doc = "[\"\\uf944\\ufbde\\ufe3b\\u277a\\u260e\\u2108\\u0123\\u4567\\u89AB\\uCDEF\\uabcd\\uef4A\"";
+        ParseJSONDocument(parser, doc);
+
+        THEN("all UNICODE escaped sequences are transformed into UTF-8 encoded characters") {
+            string parsed_string = parser.GetGeneratedEventsQueue().back().second;
+            REQUIRE(parsed_string == "籠ﯞ︻❺☎℈ģ䕧覫췯ꯍ");
+        }
+    }
+
+    WHEN("escaped sequences are parsed") {
+        const string doc = "[\"\\b\\f\\n\\r\\t\\\"\\\\\\/\"";
+        ParseJSONDocument(parser, doc);
+
+        THEN("all escaped sequences are transformed into the corresponding representation") {
+            string parsed_string = parser.GetGeneratedEventsQueue().back().second;
+            REQUIRE(parsed_string == "\b\f\n\r\t\"\\/");
+        }
+    }
+}
+
+void RequireDataLimitsAreApplied(json_config config) {
+    WHEN("max value length is set to 6") {
+        config.max_data = 6;
+        JSONParserEventsCollector parser(&config);
+
+        AND_WHEN("a value longer than 6 is parsed") {
+            THEN("an error is returned") {
+                queue<string> document = ReadFileLineByLine(DATA_LIMIT_CHUNKS);
+                string chunk;
+                while (!document.empty()){
+                    chunk = document.front();
+                    int state = parser.ProcessString(chunk);
+
+                    INFO("Parsed json document:\n" << chunk);
+                    REQUIRE(state == JSON_ERROR_DATA_LIMIT);
+
+                    document.pop();
+                }
+            }
+        }
+
+        AND_WHEN("a value 6 bytes long is parsed") {
+            string doc = "{\"key001\":\"value1\",       \"key002\":123456, \"key003\":[1,2,3,4,5,6], "
+                         "\"key004\":\"\\t\\n\\b\\r\\f\\\\\",\"key005\":\"\u0130\u0130\u0130\",\"key006\":\"\\u0130AAAA\"}";
+
+            THEN("parsing is successful") {
+                ParseJSONDocument(parser, doc);
+                REQUIRE(parser.IsFinalState());
+            }
+        }
+    }
+}
+
+void RequireNestingLimitsAreApplied(json_config config) {
+    WHEN("max nesting depth is set to 3") {
+        config.max_nesting = 3;
+        JSONParserEventsCollector parser(&config);
+
+        AND_WHEN("a document deeper than 3 is parsed") {
+            THEN("an error is returned") {
+                queue<string> document = ReadFileLineByLine(NESTING_LIMIT_CHUNKS);
+                string chunk;
+                while (!document.empty()){
+                    chunk = document.front();
+                    int state = parser.ProcessString(chunk);
+
+                    INFO("Parsed json document:\n" << chunk);
+                    REQUIRE(state == JSON_ERROR_NESTING_LIMIT);
+
+                    document.pop();
+                }
+            }
+        }
+
+        AND_WHEN("a document 3 levels deep is parsed") {
+            string doc = "{\"key\":[{\"key\":\"value\"},{\"key\":\"value\"},{\"key\":\"value\"}]}";
+
+            THEN("parsing is successful") {
+                ParseJSONDocument(parser, doc);
+                REQUIRE(parser.IsFinalState());
+            }
+        }
+    }
 }
 
 } // namespace
@@ -276,6 +391,29 @@ SCENARIO("an entirely buffered JSON document needs to be parsed") {
             }
         }
     }
+
+
+    GIVEN("a parser with partial data callbacks mode enabled") {
+        json_config config;
+        memset(&config, 0, sizeof(json_config));
+        config.mode = PARTIAL_DATA_CALLBACKS;
+        JSONParserEventsCollector parser(&config);
+
+        WHEN("a complete JSON document is parsed by the library") {
+            const string document = ReadContentOfFile(COMPLETE_DOC);
+            ParseJSONDocument(parser, document);
+            REQUIRE(parser.IsFinalState());
+
+            THEN("all the data types are correctly identified") {
+                queue<pair<int, string> > events_queue =
+                    parser.GetGeneratedEventsQueue();
+                queue<pair<int, string> > expected_events_queue =
+                    LoadEventsQueueFromFile(COMPLETE_DOC_PARTIAL_MODE_EVENTS);
+
+                RequireEqualEventsQueues(events_queue, expected_events_queue);
+            }
+        }
+    }
 }
 
 SCENARIO("a partially buffered JSON document needs to be parsed") {
@@ -285,15 +423,7 @@ SCENARIO("a partially buffered JSON document needs to be parsed") {
             JSONParserEventsCollector parser;
 
             queue<string> document = ReadFileLineByLine(COMPLETE_DOC_SPLIT);
-            string chunk;
-            while (!document.empty()){
-                chunk = document.front();
-                ParseJSONDocument(parser, chunk);
-                document.pop();
-                if (!document.empty())
-                    REQUIRE(!parser.IsFinalState());
-            }
-            REQUIRE(parser.IsFinalState());
+            ParseChunckedDocument(parser, document);
 
             THEN("all the data types are correctly identified") {
                 queue<pair<int, string> > events_queue =
@@ -326,6 +456,30 @@ SCENARIO("a partially buffered JSON document needs to be parsed") {
             }
         }
     }
+
+
+    GIVEN("a parser with partial data callbacks mode enabled") {
+        json_config config;
+        memset(&config, 0, sizeof(json_config));
+        config.mode = PARTIAL_DATA_CALLBACKS;
+        JSONParserEventsCollector parser(&config);
+
+        WHEN("a chunked JSON document is parsed by the library") {
+            queue<string> document = ReadFileLineByLine(COMPLETE_DOC_SPLIT);
+
+            THEN("the library doesn't keep any buffered data after parsing a chunk "
+                 "and all the data types are correctly identified") {
+                ParseChunckedDocument(parser, document);
+
+                queue<pair<int, string> > events_queue =
+                    parser.GetGeneratedEventsQueue();
+                queue<pair<int, string> > expected_events_queue =
+                    LoadEventsQueueFromFile(COMPLETE_DOC_SPLIT_EVENTS);
+
+                RequireEqualEventsQueues(events_queue, expected_events_queue);
+            }
+        }
+    }
 }
 
 SCENARIO("a JSON document containing escaped characters need to be parsed") {
@@ -333,25 +487,17 @@ SCENARIO("a JSON document containing escaped characters need to be parsed") {
     GIVEN("a parser with a default configuration") {
         JSONParserEventsCollector parser;
 
-        WHEN("UNICODE escaped sequences are parsed") {
-            const string doc = "[\"\\uf944\\ufbde\\ufe3b\\u277a\\u260e\\u2108\\u0123\\u4567\\u89AB\\uCDEF\\uabcd\\uef4A\"";
-            ParseJSONDocument(parser, doc);
+        RequireEscapedCharactersAreCorrectlyTransformed(parser);
+    }
 
-            THEN("all UNICODE escaped sequences are transformed into UTF-8 encoded characters") {
-                string parsed_string = parser.GetGeneratedEventsQueue().back().second;
-                REQUIRE(parsed_string == "籠ﯞ︻❺☎℈ģ䕧覫췯ꯍ");
-            }
-        }
 
-        WHEN("escaped sequences are parsed") {
-            const string doc = "[\"\\b\\f\\n\\r\\t\\\"\\\\\\/\"";
-            ParseJSONDocument(parser, doc);
+    GIVEN("a parser with partial data callbacks mode enabled") {
+        json_config config;
+        memset(&config, 0, sizeof(json_config));
+        config.mode = PARTIAL_DATA_CALLBACKS;
+        JSONParserEventsCollector parser(&config);
 
-            THEN("all escaped sequences are transformed into the corresponding representation") {
-                string parsed_string = parser.GetGeneratedEventsQueue().back().second;
-                REQUIRE(parsed_string == "\b\f\n\r\t\"\\/");
-            }
-        }
+        RequireEscapedCharactersAreCorrectlyTransformed(parser);
     }
 }
 
@@ -377,64 +523,33 @@ SCENARIO("parsing limits need to be applied when parsing a JSON document") {
     json_config config;
     memset(&config, 0, sizeof(json_config));
 
-    GIVEN("a parser configured to handle values at most 6 bytes long") {
-        config.max_data = 6;
-        JSONParserEventsCollector parser(&config);
+    GIVEN("a parser with a default parsing mode") {
+        RequireDataLimitsAreApplied(config);
 
-        WHEN("a value longer than 6 bytes is parsed") {
-            THEN("an error is returned") {
-                queue<string> document = ReadFileLineByLine(DATA_LIMIT_CHUNKS);
-                string chunk;
-                while (!document.empty()){
-                    chunk = document.front();
-                    int state = parser.ProcessString(chunk);
-
-                    INFO("Parsed json document:\n" << chunk);
-                    REQUIRE(state == JSON_ERROR_DATA_LIMIT);
-
-                    document.pop();
-                }
-            }
-        }
-
-        WHEN("a 6 bytes long value is parsed") {
-            string doc = "{\"key001\":\"value1\",       \"key002\":123456, \"key003\":[1,2,3,4,5,6], "
-                         "\"key004\":\"\\t\\n\\b\\r\\f\\\\\",\"key005\":\"\u0130\u0130\u0130\",\"key006\":\"\\u0130AAAA\"}";
-
-            THEN("parsing is successful") {
-                ParseJSONDocument(parser, doc);
-                REQUIRE(parser.IsFinalState());
-            }
-        }
+        RequireNestingLimitsAreApplied(config);
     }
 
 
-    GIVEN("a parser configured to handle documents at most 3 levels deep") {
-        config.max_nesting = 3;
-        JSONParserEventsCollector parser(&config);
+    GIVEN("a parser with partial data callbacks mode enabled") {
+        config.mode = PARTIAL_DATA_CALLBACKS;
 
-        WHEN("a document deeper than 3 is parsed") {
-            THEN("an error is returned") {
-                queue<string> document = ReadFileLineByLine(NESTING_LIMIT_CHUNKS);
-                string chunk;
-                while (!document.empty()){
-                    chunk = document.front();
-                    int state = parser.ProcessString(chunk);
+        WHEN("max value length is set to 4") {
+            config.max_data = 4;
+            JSONParserEventsCollector parser(&config);
 
-                    INFO("Parsed json document:\n" << chunk);
-                    REQUIRE(state == JSON_ERROR_NESTING_LIMIT);
-
-                    document.pop();
-                }
-            }
-        }
-
-        WHEN("a document 3 levels deep is parsed") {
-            string doc = "{\"key\":[{\"key\":\"value\"},{\"key\":\"value\"},{\"key\":\"value\"}]}";
-
-            THEN("parsing is successful") {
-                ParseJSONDocument(parser, doc);
+            AND_WHEN("a JSON document containing values longer than 4 is parsed by the library") {
+                const string document = ReadContentOfFile(DATA_LIMIT_DOC);
+                ParseJSONDocument(parser, document);
                 REQUIRE(parser.IsFinalState());
+
+                THEN("PARTIAL_DATA events are generated to split values bigger than 4") {
+                    queue<pair<int, string> > events_queue =
+                        parser.GetGeneratedEventsQueue();
+                    queue<pair<int, string> > expected_events_queue =
+                        LoadEventsQueueFromFile(DATA_LIMIT_DOC_EVENTS);
+
+                    RequireEqualEventsQueues(events_queue, expected_events_queue);
+                }
             }
         }
     }
