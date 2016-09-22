@@ -247,8 +247,8 @@ static const uint8_t buffer_policy_table[NR_STATES][NR_CLASSES] = {
 /*_O*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 /*_K*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 /*CO*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*_V*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*_A*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/*_V*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+/*_A*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
 /**************************************************************************************************************/
 /*_S*/ { 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
 /*E0*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 2, 0, 2, 2, 0, 0, 0, 0, 0 },
@@ -266,16 +266,16 @@ static const uint8_t buffer_policy_table[NR_STATES][NR_CLASSES] = {
 /*X2*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 /*X3*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 /**************************************************************************************************************/
-/*T1*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*T2*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*T3*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*F1*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*F2*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*F3*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*F4*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*N1*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*N2*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-/*N3*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/*T1*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+/*T2*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
+/*T3*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/*F1*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/*F2*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/*F3*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
+/*F4*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/*N1*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
+/*N2*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/*N3*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 /**************************************************************************************************************/
 /*C1*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 /*C2*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -420,8 +420,39 @@ static int buffer_grow(json_parser *parser, uint32_t min_increase)
 	return 0;
 }
 
+static inline int buffer_push_inplace(json_parser *parser, unsigned char c)
+{
+	parser->buffer_offset++;
+	return 0;
+}
+
+static inline int escape_buffer_push_inplace(json_parser *parser, unsigned char c)
+{
+	parser->buffer_offset++;
+	parser->escape_buffer[parser->escape_buffer_offset++] = c;
+	return 0;
+}
+
+static inline int do_callback_withbuf_inplace(json_parser *parser, int type)
+{
+	if (parser->callback)
+		CHK((*parser->callback)(parser->userdata, type, parser->buffer, parser->buffer_offset));
+	parser->buffer_offset = 0;
+	return 0;
+}
+
+static inline int do_callback_inplace(json_parser *parser, int type)
+{
+	if (!parser->callback)
+		return 0;
+	return (*parser->callback)(parser->userdata, type, parser->buffer, 0);
+}
+
 static int buffer_push(json_parser *parser, unsigned char c)
 {
+	if (parser->config.mode == IN_PLACE)
+		return buffer_push_inplace(parser, c);
+
 	CHK_BUFFER_GROW(1);
 	parser->buffer[parser->buffer_offset++] = c;
 	return 0;
@@ -429,6 +460,9 @@ static int buffer_push(json_parser *parser, unsigned char c)
 
 static int escape_buffer_push(json_parser *parser, unsigned char c)
 {
+	if (parser->config.mode == IN_PLACE)
+		return escape_buffer_push_inplace(parser, c);
+
 	if (parser->escape_buffer_offset >= ESCAPE_BUFFER_SIZE)
 		return JSON_ERROR;
 
@@ -439,6 +473,9 @@ static int escape_buffer_push(json_parser *parser, unsigned char c)
 
 static int do_callback_withbuf(json_parser *parser, int type)
 {
+	if (parser->config.mode == IN_PLACE)
+		return do_callback_withbuf_inplace(parser, type);
+
 	if (parser->callback) {
 		parser->buffer[parser->buffer_offset] = '\0';
 		CHK((*parser->callback)(parser->userdata, type, parser->buffer, parser->buffer_offset));
@@ -449,6 +486,9 @@ static int do_callback_withbuf(json_parser *parser, int type)
 
 static int do_callback(json_parser *parser, int type)
 {
+	if (parser->config.mode == IN_PLACE)
+		return do_callback_inplace(parser, type);
+
 	if (!parser->callback)
 		return 0;
 	return (*parser->callback)(parser->userdata, type, NULL, 0);
@@ -472,9 +512,44 @@ static const uint8_t hextable[] = {
 #define IS_HIGH_SURROGATE(uc) (((uc) & 0xfc00) == 0xd800)
 #define IS_LOW_SURROGATE(uc)  (((uc) & 0xfc00) == 0xdc00)
 
+static inline int decode_unicode_char_inplace(json_parser *parser)
+{
+	uint32_t uval;
+	char *b = parser->escape_buffer;
+	int offset = parser->escape_buffer_offset;
+
+	uval = (hex(b[offset - 4]) << 12) | (hex(b[offset - 3]) << 8)
+	     | (hex(b[offset - 2]) << 4) | hex(b[offset - 1]);
+
+	/* fast case */
+	if (!parser->unicode_multi && uval < 0x80) {
+		return 0;
+	}
+
+	if (parser->unicode_multi) {
+		if (!IS_LOW_SURROGATE(uval))
+			return JSON_ERROR_UNICODE_MISSING_LOW_SURROGATE;
+
+		parser->unicode_multi = 0;
+		return 0;
+	}
+
+	if (IS_LOW_SURROGATE(uval))
+		return JSON_ERROR_UNICODE_UNEXPECTED_LOW_SURROGATE;
+	if (IS_HIGH_SURROGATE(uval)) {
+		parser->unicode_multi = uval;
+		return 0;
+	}
+
+	return 0;
+}
+
 /* transform an unicode [0-9A-Fa-f]{4} sequence into a proper value */
 static int decode_unicode_char(json_parser *parser)
 {
+	if (parser->config.mode == IN_PLACE)
+		return decode_unicode_char_inplace(parser);
+
 	uint32_t uval;
 	char *b = parser->escape_buffer;
 	int offset = parser->escape_buffer_offset;
@@ -630,40 +705,43 @@ static int act_sp(json_parser *parser)
 
 static int act_tr(json_parser *parser)
 {
-	CHK(do_callback(parser, JSON_TRUE));
+	CHK(do_callback_withbuf(parser, JSON_TRUE));
 	return 0;
 }
 
 static int act_fa(json_parser *parser)
 {
-	CHK(do_callback(parser, JSON_FALSE));
+	CHK(do_callback_withbuf(parser, JSON_FALSE));
 	return 0;
 }
 
 static int act_nu(json_parser *parser)
 {
-	CHK(do_callback(parser, JSON_NULL));
+	CHK(do_callback_withbuf(parser, JSON_NULL));
 	return 0;
 }
 
 static int act_fb(json_parser *parser)
 {
+	int type = JSON_PARTIAL_VALUE;
 	// If fb is called and we are not in a state where a value is being read
 	// then we are either buffering a key or a string
 	if (!IS_VALUE_STATE(parser->state)) {
 		if (parser->expecting_key)
-			CHK(do_callback_withbuf(parser, JSON_PARTIAL_KEY));
+			type = JSON_PARTIAL_KEY;
 		else
-			CHK(do_callback_withbuf(parser, JSON_PARTIAL_STRING));
+			type = JSON_PARTIAL_STRING;
 	}
-	else
-		CHK(do_callback_withbuf(parser, JSON_PARTIAL_VALUE));
+
+	CHK(do_callback_withbuf(parser, type));
+
 	return 0;
 }
 
 static int act_es(json_parser *parser)
 {
-	CHK(copy_escaped_character(parser));
+	if (parser->config.mode != IN_PLACE)
+		CHK(copy_escaped_character(parser));
 	parser->escape_buffer_offset = 0;
 	return 0;
 }
@@ -720,25 +798,9 @@ static int do_action(json_parser *parser, int next_state)
 	return 0;
 }
 
-/** json_parser_init initialize a parser structure taking a config,
- * a config and its userdata.
- * return JSON_ERROR_NO_MEMORY if memory allocation failed or SUCCESS.
- */
-int json_parser_init(json_parser *parser, json_config *config,
-                     json_parser_callback callback, void *userdata)
-{
-	memset(parser, 0, sizeof(*parser));
-
-	if (config)
-		memcpy(&parser->config, config, sizeof(json_config));
-	parser->callback = callback;
-	parser->userdata = userdata;
-
-	/* initialise parsing stack and state */
+static int initialize_parser_stack(json_parser *parser) {
 	parser->stack_offset = 0;
-	parser->state = STATE_GO;
 
-	/* initialize the parse stack */
 	parser->stack_size = (parser->config.max_nesting > 0)
 		? parser->config.max_nesting
 		: LIBJSON_DEFAULT_STACK_SIZE;
@@ -747,7 +809,10 @@ int json_parser_init(json_parser *parser, json_config *config,
 	if (!parser->stack)
 		return JSON_ERROR_NO_MEMORY;
 
-	/* initialize the parse buffer */
+	return 0;
+}
+
+static int initialize_parser_buffer(json_parser *parser) {
 	parser->buffer_size = (parser->config.buffer_initial_size > 0)
 		? parser->config.buffer_initial_size
 		: LIBJSON_DEFAULT_BUFFER_SIZE;
@@ -764,6 +829,32 @@ int json_parser_init(json_parser *parser, json_config *config,
 		return JSON_ERROR_NO_MEMORY;
 	}
 
+	return 0;
+}
+
+/** json_parser_init initialize a parser structure taking a config,
+ * a config and its userdata.
+ * return JSON_ERROR_NO_MEMORY if memory allocation failed or SUCCESS.
+ */
+int json_parser_init(json_parser *parser, json_config *config,
+                     json_parser_callback callback, void *userdata)
+{
+	memset(parser, 0, sizeof(*parser));
+
+	if (config)
+		memcpy(&parser->config, config, sizeof(json_config));
+	parser->callback = callback;
+	parser->userdata = userdata;
+
+	/* initialise parsing stack and state */
+	CHK(initialize_parser_stack(parser));
+	parser->state = STATE_GO;
+
+	/* initialize the parse buffer */
+	if (parser->config.mode != IN_PLACE) {
+		CHK(initialize_parser_buffer(parser));
+	}
+
 	parser->buffer_offset = 0;
 	parser->escape_buffer_offset = 0;
 
@@ -776,7 +867,8 @@ int json_parser_free(json_parser *parser)
 	if (!parser)
 		return 0;
 	free(parser->stack);
-	free(parser->buffer);
+	if (parser->buffer && parser->config.mode != IN_PLACE)
+		free(parser->buffer);
 	parser->stack = NULL;
 	parser->buffer = NULL;
 	return 0;
@@ -800,6 +892,11 @@ int json_parser_string(json_parser *parser, const char *s,
 	int next_class, next_state;
 	int buffer_policy;
 	uint32_t i;
+
+	if (parser->config.mode == IN_PLACE) {
+		parser->buffer = (char*)s;
+		parser->buffer_offset = 0;
+	}
 
 	ret = 0;
 	unsigned char ch;
@@ -836,11 +933,18 @@ int json_parser_string(json_parser *parser, const char *s,
 			break;
 		}
 
+		/* Update buffer pointer in case inplace parsing is on */
+		if (parser->config.mode == IN_PLACE && parser->buffer_offset == 0) {
+			parser->buffer = (char*)(s+i);
+		}
+
 		/* add char to buffer */
 		if (buffer_policy) {
-			ret = (buffer_policy == 2)
-				? escape_buffer_push(parser, ch)
-				: buffer_push(parser, ch);
+			if (buffer_policy == 2)
+				ret = escape_buffer_push(parser, ch);
+			else
+				ret = buffer_push(parser, ch);
+
 			if (ret)
 				break;
 		}
@@ -855,7 +959,7 @@ int json_parser_string(json_parser *parser, const char *s,
 	}
 
 	// Flush the buffer
-	if (parser->config.mode == PARTIAL_DATA_CALLBACKS && !ret && parser->buffer_offset > 0)
+	if (parser->config.mode != DEFAULT && !ret && parser->buffer_offset > 0)
 		do_action(parser, STATE_FB);
 
 	if (processed)

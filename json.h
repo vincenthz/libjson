@@ -92,6 +92,8 @@ typedef enum
 	/* Enable buffer flushing at the end of provided JSON chunk.
 	 * A JSON_PARTIAL_DATA callback will be triggered. */
 	PARTIAL_DATA_CALLBACKS,
+	/* Enable inplace parsing */
+	IN_PLACE
 } json_parsing_mode;
 
 #define LIBJSON_DEFAULT_STACK_SIZE 256

@@ -46,13 +46,16 @@ JSON_KEY:space
 JSON_PARTIAL_STRING: 
 JSON_STRING:
 JSON_KEY:quote
+JSON_PARTIAL_STRING:\
 JSON_STRING:"
 JSON_KEY:backslash
+JSON_PARTIAL_STRING:\
 JSON_STRING:\
 JSON_KEY:tab
-JSON_STRING:	
+JSON_PARTIAL_STRING:\
+JSON_STRING:t
 JSON_KEY:slash
-JSON_PARTIAL_STRING:/ & 
+JSON_PARTIAL_STRING:/ & \
 JSON_STRING:/
 JSON_KEY:alpha
 JSON_STRING:abcdefghijklmnopqrstuvwyz
@@ -66,11 +69,12 @@ JSON_STRING:digit
 JSON_KEY:special
 JSON_STRING:`1~!@#$%^&*()_+-={':[,]}|;.</>?
 JSON_KEY:hex
-JSON_PARTIAL_STRING:ģ
-JSON_PARTIAL_STRING:䕧
-JSON_PARTIAL_STRING:覫
-JSON_PARTIAL_STRING:췯
-JSON_STRING:𐀀
+JSON_PARTIAL_STRING:\
+JSON_PARTIAL_STRING:u0123\u
+JSON_PARTIAL_STRING:4567\u89
+JSON_PARTIAL_STRING:AB\uCDE
+JSON_PARTIAL_STRING:F\uD800
+JSON_STRING:\uDC00
 JSON_KEY:true
 JSON_TRUE:true
 JSON_KEY:false
@@ -113,10 +117,10 @@ JSON_INT:6
 JSON_INT:7
 JSON_ARRAY_END:
 JSON_KEY:jsontext
-JSON_STRING:{"object with 1 member":["array with 1 element"]}
+JSON_STRING:{\"object with 1 member\":[\"array with 1 element\"]}
 JSON_KEY:quotes
-JSON_STRING:&#34; " %22 0x22 034 &#x22;
-JSON_KEY:/\"쫾몾ꮘﳞ볚	`1~!@#$%^&*()_+-=[]{}|;:',./<>?
+JSON_STRING:&#34; \u0022 %22 0x22 034 &#x22;
+JSON_KEY:\/\\\"\uCAFE\uBABE\uAB98\uFCDE\ubcda\uef4A\t`1~!@#$%^&*()_+-=[]{}|;:',./<>?
 JSON_STRING:A key can be any string
 JSON_OBJECT_END:
 JSON_FLOAT:0.5

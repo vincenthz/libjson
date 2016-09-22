@@ -44,8 +44,10 @@ const string COMPLETE_DOC = RESOURCES_PATH + "complete_doc.json";
 const string COMPLETE_DOC_EVENTS = RESOURCES_PATH + "complete_doc.events";
 const string COMPLETE_DOC_COMPRESSED = RESOURCES_PATH + "complete_doc_compressed.json";
 const string COMPLETE_DOC_PARTIAL_MODE_EVENTS = RESOURCES_PATH + "complete_doc_partial_mode.events";
+const string COMPLETE_DOC_INPLACE_EVENTS = RESOURCES_PATH + "complete_doc_inplace.events";
 const string COMPLETE_DOC_SPLIT = RESOURCES_PATH + "complete_doc_split.json";
 const string COMPLETE_DOC_SPLIT_EVENTS = RESOURCES_PATH + "complete_doc_split.events";
+const string COMPLETE_DOC_SPLIT_INPLACE_EVENTS = RESOURCES_PATH + "complete_doc_split_inplace.events";
 const string DATA_LIMIT_CHUNKS = RESOURCES_PATH + "data_limit_chunks.json";
 const string NESTING_LIMIT_CHUNKS = RESOURCES_PATH + "nesting_limit_chunks.json";
 const string CHUNKS_DOC_LAST_VALUE = RESOURCES_PATH + "chunks_last_value.json";
@@ -259,6 +261,10 @@ void ParseChunckedDocument(JSONParserEventsCollector& parser,
             if (parser.GetParserInternalStatus().config.mode == PARTIAL_DATA_CALLBACKS) {
                     REQUIRE(parser.GetParserInternalStatus().buffer_offset == 0);
             }
+            // In case in place parsing is enabled check that buffer size is always zero
+            if (parser.GetParserInternalStatus().config.mode == IN_PLACE) {
+                    REQUIRE(parser.GetParserInternalStatus().buffer_size == 0);
+            }
 
             document.pop();
             if (!document.empty())
@@ -414,6 +420,29 @@ SCENARIO("an entirely buffered JSON document needs to be parsed") {
             }
         }
     }
+
+
+    GIVEN("a parser with in-place parsing mode enabled") {
+        json_config config;
+        memset(&config, 0, sizeof(json_config));
+        config.mode = IN_PLACE;
+        JSONParserEventsCollector parser(&config);
+
+        WHEN("a complete JSON document is parsed by the library") {
+            const string document = ReadContentOfFile(COMPLETE_DOC);
+            ParseJSONDocument(parser, document);
+            REQUIRE(parser.IsFinalState());
+
+            THEN("all the data types are correctly identified") {
+                queue<pair<int, string> > events_queue =
+                    parser.GetGeneratedEventsQueue();
+                queue<pair<int, string> > expected_events_queue =
+                    LoadEventsQueueFromFile(COMPLETE_DOC_INPLACE_EVENTS);
+
+                RequireEqualEventsQueues(events_queue, expected_events_queue);
+            }
+        }
+    }
 }
 
 SCENARIO("a partially buffered JSON document needs to be parsed") {
@@ -480,6 +509,30 @@ SCENARIO("a partially buffered JSON document needs to be parsed") {
             }
         }
     }
+
+
+    GIVEN("a parser with in-place parsing enabled") {
+        json_config config;
+        memset(&config, 0, sizeof(json_config));
+        config.mode = IN_PLACE;
+        JSONParserEventsCollector parser(&config);
+
+        WHEN("a chunked JSON document is parsed by the library") {
+            queue<string> document = ReadFileLineByLine(COMPLETE_DOC_SPLIT);
+
+            THEN("the library doesn't keep any buffered data after parsing a chunk "
+                 "and all the data types are correctly identified") {
+                ParseChunckedDocument(parser, document);
+
+                queue<pair<int, string> > events_queue =
+                    parser.GetGeneratedEventsQueue();
+                queue<pair<int, string> > expected_events_queue =
+                    LoadEventsQueueFromFile(COMPLETE_DOC_SPLIT_INPLACE_EVENTS);
+
+                RequireEqualEventsQueues(events_queue, expected_events_queue);
+            }
+        }
+    }
 }
 
 SCENARIO("a JSON document containing escaped characters need to be parsed") {
@@ -498,6 +551,24 @@ SCENARIO("a JSON document containing escaped characters need to be parsed") {
         JSONParserEventsCollector parser(&config);
 
         RequireEscapedCharactersAreCorrectlyTransformed(parser);
+    }
+
+
+    GIVEN("a parser with inplace mode enabled") {
+        json_config config;
+        memset(&config, 0, sizeof(json_config));
+        config.mode = IN_PLACE;
+        JSONParserEventsCollector parser(&config);
+
+        WHEN("escaped sequences are parsed") {
+            const string doc = "[\"\\uf944\\ufbde\\ufe3b\\uD800\\uDC00\\b\\f\\n\\r\\t\\\"\\\\\\/\"";
+            ParseJSONDocument(parser, doc);
+
+            THEN("all escaped sequences are not transformed into the corresponding representation") {
+                string parsed_string = parser.GetGeneratedEventsQueue().back().second;
+                REQUIRE(parsed_string == "\\uf944\\ufbde\\ufe3b\\uD800\\uDC00\\b\\f\\n\\r\\t\\\"\\\\\\/");
+            }
+        }
     }
 }
 
@@ -552,5 +623,12 @@ SCENARIO("parsing limits need to be applied when parsing a JSON document") {
                 }
             }
         }
+    }
+
+
+    GIVEN("a parser with inplace mode enabled") {
+        config.mode = IN_PLACE;
+
+        RequireNestingLimitsAreApplied(config);
     }
 }
