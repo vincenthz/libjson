@@ -2,7 +2,7 @@ AR = ar
 CC = gcc
 CXX = g++
 CFLAGS ?= -Wall -Os -fPIC
-CFLAGS_TEST ?= -I./unit-tests/catch
+CFLAGS_TEST ?= -I. -I./unit-tests/catch
 LDFLAGS = -L.
 SHLIB_CFLAGS = -shared
 
