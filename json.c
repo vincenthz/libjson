@@ -446,7 +446,7 @@ static inline int do_callback_inplace(json_parser *parser, int type)
 {
 	if (!parser->callback)
 		return 0;
-	return (*parser->callback)(parser->userdata, type, parser->buffer, 0);
+	return (*parser->callback)(parser->userdata, type, parser->buffer, 1);
 }
 
 static int buffer_push(json_parser *parser, unsigned char c)
