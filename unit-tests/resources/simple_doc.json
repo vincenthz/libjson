@@ -1,0 +1,18 @@
+{
+    "Escaped" : "\"\\\/\t",
+    "Image": {
+        "Width":  800,
+        "Height": 1234,
+        "Title":  "View from 15th Floor",
+        "Unicode" : "鯀ἆ凸㈭ĭ즿UH㽤",
+        "EscapedUnicode" : "\u1234\u543F\uAAAA\uD83E\uDD80",
+        "Thumbnail": {
+            "Url":    "http://www.example.com/image/481989943",
+            "Height": 125,
+            "Width": 100.1
+        },
+        "Animated" : false,
+        "Array": [116, 943, 234, 38793, "string"]
+    },
+    "Null" : null
+}

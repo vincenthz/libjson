@@ -4,3 +4,4 @@
 *.so.*
 *.o
 jsonlint
+run-unit-tests

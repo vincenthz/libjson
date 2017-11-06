@@ -1,6 +1,8 @@
 AR = ar
 CC = gcc
+CXX = g++
 CFLAGS ?= -Wall -Os -fPIC
+CFLAGS_TEST ?= -I. -I./unit-tests/catch
 LDFLAGS = -L.
 SHLIB_CFLAGS = -shared
 
@@ -20,6 +22,8 @@ PC_TARGET = lib$(NAME).pc
 SO_LINKS = lib$(NAME).so lib$(NAME).so.$(MAJOR) lib$(NAME).so.$(MAJOR).$(MINOR)
 SO_FILE = lib$(NAME).so.$(MAJOR).$(MINOR).$(MICRO)
 HEADERS = $(NAME).h
+
+TEST_SRC=$(wildcard unit-tests/*.cpp)
 
 PREFIX ?= /usr
 DESTDIR ?=
@@ -62,9 +66,13 @@ $(NAME)lint: $(NAME)lint.o $(NAME).o
 lib$(NAME).pc: lib$(NAME).pc.in
 	sed -e 's;@PREFIX@;$(PREFIX);' -e 's;@LIBJSON_VER_MAJOR@;$(MAJOR);' -e 's;@LIBJSON_VER_MINOR@;$(MINOR);' < $< > $@
 
-.PHONY: tests clean install install-bin install-lib
+.PHONY: tests clean install install-bin install-lib unit-tests
 tests: $(NAME)lint
 	(cd tests; ./runtest)
+
+unit-tests: $(TEST_SRC) $(NAME).o
+	$(CXX) $(CFLAGS) $(CFLAGS_TEST) $(LDFLAGS) -o run-unit-tests $+
+	./run-unit-tests -d yes
 
 install-lib: $(SO_TARGETS) $(A_TARGETS) $(PC_TARGET)
 	mkdir -p $(INSTALLDIR)/lib/pkgconfig
