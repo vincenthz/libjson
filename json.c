@@ -437,6 +437,7 @@ static inline int do_callback_withbuf_inplace(json_parser *parser, int type)
 {
 	if (parser->callback)
 		CHK((*parser->callback)(parser->userdata, type, parser->buffer, parser->buffer_offset));
+	parser->buffer += parser->buffer_offset;
 	parser->buffer_offset = 0;
 	return 0;
 }
