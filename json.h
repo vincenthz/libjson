@@ -57,7 +57,7 @@ typedef enum
 typedef enum
 {
 	/* no error*/
-    JSON_SUCCESS = 0,
+	JSON_SUCCESS = 0,
 	/* running out of memory */
 	JSON_ERROR_NO_MEMORY = 1,
 	/* character < 32, except space newline tab */
