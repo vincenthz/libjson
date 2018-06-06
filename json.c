@@ -469,7 +469,7 @@ static int decode_unicode_char(json_parser *parser)
 	int offset = parser->buffer_offset;
 
 	uval = (hex(b[offset - 4]) << 12) | (hex(b[offset - 3]) << 8)
-		 | (hex(b[offset - 2]) << 4) | hex(b[offset - 1]);
+	     | (hex(b[offset - 2]) << 4) | hex(b[offset - 1]);
 
 	parser->buffer_offset -= 4;
 
@@ -667,7 +667,7 @@ static int do_action(json_parser *parser, int next_state)
  * return JSON_ERROR_NO_MEMORY if memory allocation failed or SUCCESS.
  */
 int json_parser_init(json_parser *parser, json_config *config,
-					 json_parser_callback callback, void *userdata)
+                     json_parser_callback callback, void *userdata)
 {
 	memset(parser, 0, sizeof(*parser));
 
@@ -729,7 +729,7 @@ int json_parser_is_done(json_parser *parser)
  * the user can supplied a valid processed pointer that will
  * be fill with the number of processed characters before returning */
 int json_parser_string(json_parser *parser, const char *s,
-					   uint32_t length, uint32_t *processed)
+                       uint32_t length, uint32_t *processed)
 {
 	int ret;
 	int next_class, next_state;
@@ -936,8 +936,8 @@ int json_print_raw(json_printer *printer, int type, const char *data, uint32_t l
 
 /** json_print_args takes multiple types and pass them to the printer function */
 int json_print_args(json_printer *printer,
-					int (*f)(json_printer *, int, const char *, uint32_t),
-					...)
+                    int (*f)(json_printer *, int, const char *, uint32_t),
+                    ...)
 {
 	va_list ap;
 	char *data;
@@ -1044,9 +1044,9 @@ static int dom_pop(struct json_parser_dom *ctx, void **val)
 }
 
 int json_parser_dom_init(json_parser_dom *dom,
-						 json_parser_dom_create_structure create_structure,
-						 json_parser_dom_create_data create_data,
-						 json_parser_dom_append append)
+                         json_parser_dom_create_structure create_structure,
+                         json_parser_dom_create_data create_data,
+                         json_parser_dom_append append)
 {
 	memset(dom, 0, sizeof(*dom));
 	dom->stack_size = 1024;
