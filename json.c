@@ -19,6 +19,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 #include "json.h"
@@ -973,6 +974,50 @@ int json_print_args(json_printer *printer,
 	va_end(ap);
 	return ret;
 }
+
+#ifndef JSON_NO_ERRORMSG
+const char* json_strerror(int err)
+{
+	switch (err)
+	{
+		case JSON_SUCCESS:
+			return "the operation completed successfully";
+		case JSON_ERROR_NO_MEMORY:
+			return "out of memory";
+		case JSON_ERROR_BAD_CHAR:
+			return "non-printable character encountered";
+		case JSON_ERROR_POP_EMPTY:
+			return "stack is empty; can't pop";
+		case JSON_ERROR_POP_UNEXPECTED_MODE:
+			return "bad type requested for stack pop";
+		case JSON_ERROR_NESTING_LIMIT:
+			return "stack nesting limit reached";
+		case JSON_ERROR_DATA_LIMIT:
+			return "buffer is full";
+		case JSON_ERROR_COMMENT_NOT_ALLOWED:
+			return "comments not supported by the configuration";
+		case JSON_ERROR_UNEXPECTED_CHAR:
+			return "unexpected character encountered";
+		case JSON_ERROR_UNICODE_MISSING_LOW_SURROGATE:
+			return "UTF low surrogate missing after high surrogate";
+		case JSON_ERROR_UNICODE_UNEXPECTED_LOW_SURROGATE:
+			return "unexpected UTF low surrogate without preceding high surrogate";
+		case JSON_ERROR_COMMA_OUT_OF_STRUCTURE:
+			return "unexpected comma encountered";
+		case JSON_ERROR_CALLBACK:
+			return "callback returned an error code";
+		case JSON_ERROR_UTF8:
+			return "invalid UTF stream encountered";
+		default:
+			return "<unknown>";
+	}
+}
+
+void json_perror(int err)
+{
+	fputs(json_strerror(err), stderr);
+}
+#endif /* !JSON_NO_ERRORMSG */
 
 static int dom_push(struct json_parser_dom *ctx, void *val)
 {

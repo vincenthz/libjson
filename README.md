@@ -76,15 +76,17 @@ The parser API is really simple, totaling only 5 API calls:
  * json\_parser\_string
  * json\_parser\_is\_done
  * json\_parser\_free
+ * json\_strerror
+ * json\_perror
 
 json\_parser\_init initializes a new parser context from a parser config and
 takes a callback + userdata. This callback function is used everything the
 parser need to communicate a type and value to the client side of the library.
 
 json\_parser\_char take one character and inject it in the parser. on parsing
-success it will return a 0 value, but on parsing error it returns a parsing
+success it will return a 0 value (JSON\_SUCCESS), but on parsing error it returns a parsing
 error that represents the type of the error encounters. see JSON\_ERROR\_\*
-for the full set of return values.
+for the full set of return values and json\_strerror for message retrieval.
 
 json\_parser\_string is similar to json\_parser\_char except that it takes a string
 and a length.  it also returns the number of character processed, which is
@@ -94,6 +96,10 @@ json\_parser\_is\_done permits to test whetever or not the parser is in a
 terminated state. it involves not beeing into any structure.
 
 json\_parser\_free is the opposite of init, it just free the allocated structure.
+
+json\_strerror gives an error message if any other function returns non-zero.
+
+json\_perror prints an error message to stderr.
 
 The Printer API
 ---------------
