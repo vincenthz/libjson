@@ -1010,6 +1010,7 @@ const char* json_strerror(int err)
 			return "invalid UTF stream encountered";
 		default:
 			return "<unknown>";
+	}
 }
 
 void json_perror(int err)
