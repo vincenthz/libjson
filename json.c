@@ -979,7 +979,7 @@ static int dom_push(struct json_parser_dom *ctx, void *val)
 	if (ctx->stack_offset == ctx->stack_size) {
 		void *ptr;
 		uint32_t newsize = ctx->stack_size * 2;
-		ptr = memory_realloc(ctx->user_realloc, ctx->stack, newsize);
+		ptr = memory_realloc(ctx->user_realloc, ctx->stack, newsize * sizeof(*(ctx->stack)));
 		if (!ptr)
 			return JSON_ERROR_NO_MEMORY;
 		ctx->stack = ptr;
