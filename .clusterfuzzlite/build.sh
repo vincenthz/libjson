@@ -3,7 +3,6 @@ for file in "jsonlint.c json.c"; do
   $CC $CFLAGS -c ${file}
 done
 
-rm -f ./test*.o
 llvm-ar rcs libfuzz.a *.o
 
 
