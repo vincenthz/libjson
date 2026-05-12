@@ -95,6 +95,7 @@ typedef struct {
 	int allow_yaml_comments;
 	void * (*user_calloc)(size_t nmemb, size_t size);
 	void * (*user_realloc)(void *ptr, size_t size);
+	void (*user_free)(void *ptr);
 } json_config;
 
 typedef struct json_parser {
@@ -199,6 +200,7 @@ typedef struct json_parser_dom
 	/* overridable memory allocator */
 	void * (*user_calloc)(size_t nmemb, size_t size);
 	void * (*user_realloc)(void *ptr, size_t size);
+	void (*user_free)(void *ptr);
 
 	/* returned root structure (object or array) */
 	void *root_structure;

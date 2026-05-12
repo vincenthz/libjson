@@ -335,8 +335,14 @@ static inline void *memory_calloc(void *(*calloc_fct)(size_t, size_t), size_t nm
 	return (calloc_fct) ? calloc_fct(nmemb, size) : calloc(nmemb, size);
 }
 
+static inline void memory_free(void (*free_fct)(void *), void *ptr)
+{
+	(free_fct) ? free_fct(ptr) : free(ptr);
+}
+
 #define parser_calloc(parser, n, s) memory_calloc(parser->config.user_calloc, n, s)
 #define parser_realloc(parser, n, s) memory_realloc(parser->config.user_realloc, n, s)
+#define parser_free(parser, n) memory_free(parser->config.user_free, n)
 
 static int state_grow(json_parser *parser)
 {
@@ -698,7 +704,7 @@ int json_parser_init(json_parser *parser, json_config *config,
 
 	parser->buffer = parser_calloc(parser, parser->buffer_size, sizeof(char));
 	if (!parser->buffer) {
-		free(parser->stack);
+		parser_free(parser, parser->stack);
 		return JSON_ERROR_NO_MEMORY;
 	}
 	return 0;
@@ -709,8 +715,8 @@ int json_parser_free(json_parser *parser)
 {
 	if (!parser)
 		return 0;
-	free(parser->stack);
-	free(parser->buffer);
+	parser_free(parser, parser->stack);
+	parser_free(parser, parser->buffer);
 	parser->stack = NULL;
 	parser->buffer = NULL;
 	return 0;
@@ -1018,7 +1024,7 @@ int json_parser_dom_init(json_parser_dom *dom,
 
 int json_parser_dom_free(json_parser_dom *dom)
 {
-	free(dom->stack);
+	memory_free(dom->user_free, dom->stack);
 	return 0;
 }
 
@@ -1042,7 +1048,7 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
 		if (ctx->stack_offset > 0) {
 			stack = &(ctx->stack[ctx->stack_offset - 1]);
 			ctx->append(stack->val, stack->key, stack->key_length, v);
-			free(stack->key);
+			memory_free(ctx->user_free, stack->key);
 		} else
 			ctx->root_structure = v;
 		break;
@@ -1066,7 +1072,7 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
 			return JSON_ERROR_CALLBACK;
 		if (ctx->append(stack->val, stack->key, stack->key_length, v))
 			return JSON_ERROR_CALLBACK;
-		free(stack->key);
+		memory_free(ctx->user_free, stack->key);
 		break;
 	}
 	return 0;
