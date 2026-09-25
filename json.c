@@ -1053,6 +1053,8 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
 			ctx->root_structure = v;
 		break;
 	case JSON_KEY:
+		if (ctx->stack_offset == 0)
+			return JSON_ERROR_UNEXPECTED_CHAR;
 		stack = &(ctx->stack[ctx->stack_offset - 1]);
 		stack->key = memory_calloc(ctx->user_calloc, length + 1, sizeof(char));
 		stack->key_length = length;
@@ -1066,6 +1068,8 @@ int json_parser_dom_callback(void *userdata, int type, const char *data, uint32_
 	case JSON_NULL:
 	case JSON_TRUE:
 	case JSON_FALSE:
+		if (ctx->stack_offset == 0)
+			return JSON_ERROR_UNEXPECTED_CHAR;
 		stack = &(ctx->stack[ctx->stack_offset - 1]);
 		v = ctx->create_data(type, data, length);
 		if (!v)
